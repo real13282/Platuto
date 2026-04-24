@@ -9,7 +9,7 @@
     <meta name="description" content="">
     <meta name="author" content="">
 
-    <title>SB Admin 2 - Login</title>
+    <title>Platuto - Login</title>
 
     <!-- Custom fonts for this template-->
     <link href="vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
@@ -22,53 +22,55 @@
 
 </head>
 
-<body class="bg-gradient-primary">
+<body style="background-color: #008B8B;">
 
     <div class="container">
 
         <!-- Outer Row -->
-        <div class="row justify-content-center">
+        <div class="row justify-content-center align-items-center" style="min-height: 100vh;">
 
             <div class="col-xl-10 col-lg-12 col-md-9">
 
-                <div class="card o-hidden border-0 shadow-lg my-5">
+                <div class="card o-hidden border-0 shadow-lg">
                     <div class="card-body p-0">
                         <!-- Nested Row within Card Body -->
                         <div class="row">
-                            <div class="col-lg-6 d-none d-lg-block bg-login-image"></div>
+                            <div
+                                class="col-lg-6 d-none d-lg-flex align-items-center justify-content-center bg-white p-4">
+                                <img src="img/Logi.png" alt="Logo" style="max-width: 100%; height: auto;">
+                            </div>
                             <div class="col-lg-6">
                                 <div class="p-5">
                                     <div class="text-center">
                                         <h1 class="h4 text-gray-900 mb-4">INICIO DE SESION!</h1>
                                     </div>
-                                    <form class="user">
+                                    <form class="user"
+                                        onsubmit="event.preventDefault(); window.location.href='index.html';">
                                         <div class="form-group">
-                                            <input type="email" class="form-control form-control-user"
-                                                id="exampleInputEmail" aria-describedby="emailHelp"
-                                                placeholder="Enter Email Address...">
+                                            <input type="text" class="form-control form-control-user" id="numeroControl"
+                                                aria-describedby="numeroHelp" placeholder="Número de control"
+                                                inputmode="numeric" pattern="[0-9]+"
+                                                oninvalid="this.setCustomValidity('Solo se permiten números')"
+                                                oninput="this.setCustomValidity('')" required>
                                         </div>
                                         <div class="form-group">
                                             <input type="password" class="form-control form-control-user"
-                                                id="exampleInputPassword" placeholder="Password">
+                                                id="exampleInputPassword" placeholder="Contraseña" required>
                                         </div>
                                         <div class="form-group">
                                             <div class="custom-control custom-checkbox small">
                                                 <input type="checkbox" class="custom-control-input" id="customCheck">
-                                                <label class="custom-control-label" for="customCheck">Remember
-                                                    Me</label>
+                                                <label class="custom-control-label" for="customCheck">Recordarme</label>
                                             </div>
                                         </div>
-                                        <a href="index.html" class="btn btn-primary btn-user btn-block">
-                                            Login
-                                        </a>
-                                        <hr>
+                                        <button type="submit" class="btn btn-user btn-block mb-3"
+                                            style="background-color: #008B8B; border-color: #008B8B; color: white;">
+                                            Iniciar sesión
+                                        </button>
                                     </form>
-                                    <hr>
                                     <div class="text-center">
-                                        <a class="small" href="forgot-password.html">Forgot Password?</a>
-                                    </div>
-                                    <div class="text-center">
-                                        <a class="small" href="register.html">Create an Account!</a>
+                                        <a class="small" href="register.html" style="color: #008B8B;">Crear una cuenta
+                                            nueva!</a>
                                     </div>
                                 </div>
                             </div>

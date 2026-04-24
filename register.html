@@ -9,7 +9,7 @@
     <meta name="description" content="">
     <meta name="author" content="">
 
-    <title>SB Admin 2 - Register</title>
+    <title>Platuto - Register</title>
 
     <!-- Custom fonts for this template-->
     <link href="vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
@@ -22,67 +22,54 @@
 
 </head>
 
-<body class="bg-gradient-primary">
+<body style="background-color: #008B8B;">
 
     <div class="container">
 
-        <div class="card o-hidden border-0 shadow-lg my-5">
-            <div class="card-body p-0">
-                <!-- Nested Row within Card Body -->
-                <div class="row">
-                    <div class="col-lg-5 d-none d-lg-block bg-register-image"></div>
-                    <div class="col-lg-7">
-                        <div class="p-5">
-                            <div class="text-center">
-                                <h1 class="h4 text-gray-900 mb-4">Create an Account!</h1>
-                            </div>
-                            <form class="user">
-                                <div class="form-group row">
-                                    <div class="col-sm-6 mb-3 mb-sm-0">
-                                        <input type="text" class="form-control form-control-user" id="exampleFirstName"
-                                            placeholder="First Name">
-                                    </div>
-                                    <div class="col-sm-6">
-                                        <input type="text" class="form-control form-control-user" id="exampleLastName"
-                                            placeholder="Last Name">
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <input type="email" class="form-control form-control-user" id="exampleInputEmail"
-                                        placeholder="Email Address">
-                                </div>
-                                <div class="form-group row">
-                                    <div class="col-sm-6 mb-3 mb-sm-0">
-                                        <input type="password" class="form-control form-control-user"
-                                            id="exampleInputPassword" placeholder="Password">
-                                    </div>
-                                    <div class="col-sm-6">
-                                        <input type="password" class="form-control form-control-user"
-                                            id="exampleRepeatPassword" placeholder="Repeat Password">
-                                    </div>
-                                </div>
-                                <a href="login.html" class="btn btn-primary btn-user btn-block">
-                                    Register Account
-                                </a>
-                                <hr>
-                                <a href="index.html" class="btn btn-google btn-user btn-block">
-                                    <i class="fab fa-google fa-fw"></i> Register with Google
-                                </a>
-                                <a href="index.html" class="btn btn-facebook btn-user btn-block">
-                                    <i class="fab fa-facebook-f fa-fw"></i> Register with Facebook
-                                </a>
-                            </form>
-                            <hr>
-                            <div class="text-center">
-                                <a class="small" href="forgot-password.html">Forgot Password?</a>
-                            </div>
-                            <div class="text-center">
-                                <a class="small" href="login.html">Already have an account? Login!</a>
-                            </div>
+        <div class="row justify-content-center align-items-center" style="min-height: 100vh;">
+
+            <div class="col-12 text-center mb-5">
+                <h1 class="text-white" style="font-weight: 700; text-shadow: 1px 1px 3px rgba(0,0,0,0.2);">¿Qué tipo de
+                    cuenta deseas crear?</h1>
+            </div>
+
+            <div class="col-md-6 col-lg-5 mb-4">
+                <div class="card border-0 shadow-lg h-100 py-4" style="border-radius: 15px;">
+                    <div class="card-body text-center d-flex flex-column justify-content-center">
+                        <div class="mb-4 mx-auto"
+                            style="width: 200px; height: 200px; border: 2px dashed #ccc; border-radius: 15px; display: flex; align-items: center; justify-content: center; background-color: #f8f9fc;">
+                            <img src="img/asesorado.avif" alt="Logo" style="max-width: 100%; height: auto;">
                         </div>
+                        <h2 class="h3 text-gray-800 mb-4 font-weight-bold">Asesorado</h2>
+                        <a href="#" class="btn btn-primary btn-user btn-block mt-auto"
+                            style="background-color: #186a7a; border-color: #186a7a; padding: 12px; font-size: 1.1rem; border-radius: 30px;">
+                            Seleccionar Asesorado
+                        </a>
                     </div>
                 </div>
             </div>
+
+            <div class="col-md-6 col-lg-5 mb-4">
+                <div class="card border-0 shadow-lg h-100 py-4" style="border-radius: 15px;">
+                    <div class="card-body text-center d-flex flex-column justify-content-center">
+                        <div class="mb-4 mx-auto"
+                            style="width: 200px; height: 200px; border: 2px dashed #ccc; border-radius: 15px; display: flex; align-items: center; justify-content: center; background-color: #f8f9fc;">
+                            <img src="img/tutor.jpg" alt="Logo" style="max-width: 100%; height: auto;">
+                        </div>
+                        <h2 class="h3 text-gray-800 mb-4 font-weight-bold">Tutor</h2>
+                        <a href="#" class="btn btn-primary btn-user btn-block mt-auto"
+                            style="background-color: #186a7a; border-color: #186a7a; padding: 12px; font-size: 1.1rem; border-radius: 30px;">
+                            Seleccionar Tutor
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 text-center mt-4">
+                <a class="text-white" href="login.html" style="font-size: 1.1rem; text-decoration: underline;">¿Ya
+                    tienes una cuenta? Inicia sesión!</a>
+            </div>
+
         </div>
 
     </div>

@@ -9,7 +9,7 @@
     <meta name="description" content="">
     <meta name="author" content="">
 
-    <title>SB Admin 2 - Login</title>
+    <title>Platuto - Login</title>
 
     <!-- Custom fonts for this template-->
     <link href="vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
@@ -22,53 +22,55 @@
 
 </head>
 
-<body class="bg-gradient-primary">
+<body style="background-color: #008B8B;">
 
     <div class="container">
 
         <!-- Outer Row -->
-        <div class="row justify-content-center">
+        <div class="row justify-content-center align-items-center" style="min-height: 100vh;">
 
             <div class="col-xl-10 col-lg-12 col-md-9">
 
-                <div class="card o-hidden border-0 shadow-lg my-5">
+                <div class="card o-hidden border-0 shadow-lg">
                     <div class="card-body p-0">
                         <!-- Nested Row within Card Body -->
                         <div class="row">
-                            <div class="col-lg-6 d-none d-lg-block bg-login-image"></div>
+                            <div
+                                class="col-lg-6 d-none d-lg-flex align-items-center justify-content-center bg-white p-5">
+                                <img src="img/Loge.png" alt="Logo"
+                                    style="width: 85%; height: auto; object-fit: contain;">
+                            </div>
                             <div class="col-lg-6">
                                 <div class="p-5">
                                     <div class="text-center">
-                                        <h1 class="h4 text-gray-900 mb-4">INICIO DE SESION!</h1>
+                                        <h1 class="h2 mb-1 font-weight-bold" style="color: #008B8B;">Platuto</h1>
+                                        <h2 class="h5 text-gray-700 mb-4">INICIO DE SESIÓN!</h2>
                                     </div>
-                                    <form class="user">
+                                    <form class="user" id="loginForm">
                                         <div class="form-group">
-                                            <input type="email" class="form-control form-control-user"
-                                                id="exampleInputEmail" aria-describedby="emailHelp"
-                                                placeholder="Enter Email Address...">
+                                            <input type="text" class="form-control form-control-user" id="numeroControl"
+                                                aria-describedby="numeroHelp" placeholder="Número de control"
+                                                inputmode="numeric" pattern="[0-9]{8}" minlength="8" maxlength="8"
+                                                oninvalid="this.setCustomValidity('El número debe tener exactamente 8 dígitos')"
+                                                oninput="this.setCustomValidity('')" required>
                                         </div>
                                         <div class="form-group">
                                             <input type="password" class="form-control form-control-user"
-                                                id="exampleInputPassword" placeholder="Password">
+                                                id="exampleInputPassword" placeholder="Contraseña" inputmode="numeric"
+                                                pattern="[0-9]{6}" minlength="6" maxlength="6"
+                                                oninvalid="this.setCustomValidity('Solo se permiten números (exactamente 6 dígitos)')"
+                                                oninput="this.setCustomValidity('')" required>
                                         </div>
-                                        <div class="form-group">
-                                            <div class="custom-control custom-checkbox small">
-                                                <input type="checkbox" class="custom-control-input" id="customCheck">
-                                                <label class="custom-control-label" for="customCheck">Remember
-                                                    Me</label>
-                                            </div>
-                                        </div>
-                                        <a href="index.html" class="btn btn-primary btn-user btn-block">
-                                            Login
-                                        </a>
-                                        <hr>
+                                        <button type="submit" class="btn btn-user btn-block mb-3"
+                                            style="background-color: #008B8B; border-color: #008B8B; color: white;">
+                                            Iniciar sesión
+                                        </button>
                                     </form>
-                                    <hr>
                                     <div class="text-center">
-                                        <a class="small" href="forgot-password.html">Forgot Password?</a>
-                                    </div>
-                                    <div class="text-center">
-                                        <a class="small" href="register.html">Create an Account!</a>
+                                        <a href="register.html"
+                                            style="color: #008B8B; font-size: 1.1rem; font-weight: 600;">Crear una
+                                            cuenta
+                                            nueva!</a>
                                     </div>
                                 </div>
                             </div>
@@ -92,6 +94,44 @@
     <!-- Custom scripts for all pages-->
     <script src="js/sb-admin-2.min.js"></script>
 
+    <!-- Login Logic -->
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault(); // Evitar la redirección directa por el formulario
+
+            const nocontrol = document.getElementById('numeroControl').value;
+            const password = document.getElementById('exampleInputPassword').value;
+
+            // Validación en el frontend (solo números y exactamente 6 dígitos)
+            if (!/^\d{6}$/.test(password)) {
+                alert('La contraseña debe contener solo números (exactamente 6 dígitos).');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ nocontrol, password })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    // Si es exitoso, redirigimos al dashboard (index.html)
+                    window.location.href = 'index.html';
+                } else {
+                    // Mostrar mensaje de error proveniente del backend
+                    alert(result.message);
+                }
+            } catch (error) {
+                console.error("Error en petición de login:", error);
+                alert("Ocurrió un error al conectar con el servidor.");
+            }
+        });
+    </script>
 </body>
 
 </html>

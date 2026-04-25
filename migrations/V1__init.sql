@@ -29,31 +29,12 @@ CREATE TABLE IF NOT EXISTS Alumnos (
     FOREIGN KEY (idlicenciaturas) REFERENCES Licenciaturas(idlicenciaturas)
 );
 
---Tabla: Asesorados
-CREATE TABLE IF NOT EXISTS Asesorados (
-    idasesorados INTEGER PRIMARY KEY AUTOINCREMENT,
-    idalumnos INTEGER,
-    materias TEXT,
-    FOREIGN KEY (idalumnos) REFERENCES Alumnos(idalumnos)
-);
-
---Tabla: Tutores
-CREATE TABLE IF NOT EXISTS Tutores (
-    idTutores INTEGER PRIMARY KEY AUTOINCREMENT,
-    idlicenciaturas INTEGER,
-    idmaestro INTEGER,
-    url_cv TEXT,
-    materias TEXT,
-    FOREIGN KEY (idlicenciaturas) REFERENCES Licenciaturas(idlicenciaturas),
-    FOREIGN KEY (idmaestro) REFERENCES Maestro(idmaestro)
-);
-
 
 -- Tabla: Licenciaturas
 CREATE TABLE IF NOT EXISTS Licenciaturas (
     idlicenciaturas INTEGER PRIMARY KEY AUTOINCREMENT,
     nombre_carrera TEXT NOT NULL,
-    periodo TEXT,
+    periodo INTEGER,
     especialidad TEXT
 );
 
@@ -76,10 +57,9 @@ CREATE TABLE IF NOT EXISTS Maestro (
     nocontrol TEXT UNIQUE,
     apellidopat TEXT NOT NULL,
     apellidomat TEXT,
-    telefono TEXT,
-    correo TEXT,
-    clave TEXT,
     nombre TEXT NOT NULL,
     fechanacimiento DATE,
+    telefono TEXT,
+    correo TEXT,
     sexo TEXT
 );

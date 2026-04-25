@@ -44,8 +44,7 @@
                                     <div class="text-center">
                                         <h1 class="h4 text-gray-900 mb-4">INICIO DE SESION!</h1>
                                     </div>
-                                    <form class="user"
-                                        onsubmit="event.preventDefault(); window.location.href='index.html';">
+                                    <form class="user" id="loginForm">
                                         <div class="form-group">
                                             <input type="text" class="form-control form-control-user" id="numeroControl"
                                                 aria-describedby="numeroHelp" placeholder="Número de control"
@@ -94,6 +93,44 @@
     <!-- Custom scripts for all pages-->
     <script src="js/sb-admin-2.min.js"></script>
 
+    <!-- Login Logic -->
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault(); // Evitar la redirección directa por el formulario
+
+            const nocontrol = document.getElementById('numeroControl').value;
+            const password = document.getElementById('exampleInputPassword').value;
+
+            // Validación en el frontend (solo números y máximo 8 dígitos)
+            if (!/^\d{1,8}$/.test(password)) {
+                alert('La contraseña debe contener solo números (máximo 8 dígitos).');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ nocontrol, password })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    // Si es exitoso, redirigimos al dashboard (index.html)
+                    window.location.href = 'index.html';
+                } else {
+                    // Mostrar mensaje de error proveniente del backend
+                    alert(result.message);
+                }
+            } catch (error) {
+                console.error("Error en petición de login:", error);
+                alert("Ocurrió un error al conectar con el servidor.");
+            }
+        });
+    </script>
 </body>
 
 </html>

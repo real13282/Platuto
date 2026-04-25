@@ -1,0 +1,81 @@
+-- Insertando Licenciaturas
+INSERT INTO Licenciaturas (nombre_carrera, periodo, especialidad) VALUES
+('Licenciatura en Informática', 8, 'Desarrollo de Software'),
+('Licenciatura en Administración', 8, 'Recursos Humanos'),
+('Licenciatura en Administración de Turistica', 8, 'Turismo'),
+('Licenciatura en Psicología', 8, 'Psicología'),
+('Licenciatura en Contaduría Pública', 9, 'Finanzas Públicas'),
+('Licenciatura en Pedagogía', 8, 'Pedagogía'),
+('Arquitectura', 10, 'Arquitectura'),
+('Licenciatura en Derecho', 9, 'Derecho'),
+('Licenciatura en Comunicación', 8, 'Producción Audiovisual'),
+('Licenciatura Diseño Gráfico', 8, 'Diseño');
+
+-- Insertando Maestros
+INSERT INTO Maestro (nocontrol, apellidopat, apellidomat, nombre, fechanacimiento, telefono, correo, sexo) VALUES
+('M1001', 'García', 'López', 'Juan Carlos', '1980-05-15', '5551234567', 'oaxcatjuanga@lameso.edu.mx', 'M'),
+('M1002', 'Martínez', 'Gómez', 'Ana María', '1985-08-22', '5552345678', 'oaxcatanama@lameso.edu.mx', 'F'),
+('M1003', 'Rodríguez', 'Hernández', 'Luis Alberto', '1975-11-10', '5553456789', 'oaxcatluisro@lameso.edu.mx', 'M'),
+('M1004', 'Fernández', 'Pérez', 'María José', '1990-03-05', '5554567890', 'oaxcatmariafe@lameso.edu.mx', 'F'),
+('M1005', 'López', 'García', 'José Luis', '1982-07-18', '5555678901', 'oaxcatjoselu@lameso.edu.mx', 'M'),
+('M1006', 'González', 'Martínez', 'Laura Elena', '1978-09-25', '5556789012', 'oaxcatlaurael@lameso.edu.mx', 'F'),
+('M1007', 'Pérez', 'Rodríguez', 'Carlos Alberto', '1988-12-30', '5557890123', 'oaxcatcarlospe@lameso.edu.mx', 'M'),
+('M1008', 'Sánchez', 'Fernández', 'Patricia Guadalupe', '1983-02-14', '5558901234', 'oaxcatpatisa@lameso.edu.mx', 'F'),
+('M1009', 'Ramírez', 'Sánchez', 'Miguel Ángel', '1979-06-20', '5559012345', 'oaxcatmiguelra@lameso.edu.mx', 'M'),
+('M1010', 'Cruz', 'Ramírez', 'Martha Leticia', '1986-10-08', '5550123456', 'oaxcatmarthacr@lameso.edu.mx', 'F');
+
+-- Insertando Materias
+INSERT INTO Materias (materia, idlicenciaturas, semestre, grupo, turno, clave) VALUES
+('Programación Básica', 1, 1, 'A', 'Matutino', 'PROG01'),
+('Cálculo Diferencial', 1, 1, 'A', 'Matutino', 'CALC01'),
+('Fundamentos de Investigación', 1, 1, 'A', 'Matutino', 'FUND01'),
+('Matemáticas Discretas', 1, 1, 'A', 'Matutino', 'MATD01'),
+('Estructura de Datos', 1, 2, 'B', 'Vespertino', 'ESTR02'),
+('Administración de Base de Datos', 1, 4, 'A', 'Matutino', 'BADA04'),
+('Redes de Computadoras', 1, 5, 'C', 'Vespertino', 'REDE05'),
+('Desarrollo Web', 1, 6, 'A', 'Matutino', 'DWEB06'),
+('Ingeniería de Software', 1, 7, 'B', 'Vespertino', 'INSO07'),
+('Inteligencia Artificial', 1, 8, 'A', 'Matutino', 'IA08'),
+('Contabilidad General', 2, 1, 'A', 'Matutino', 'CONT01'),
+('Economía', 2, 2, 'B', 'Vespertino', 'ECON02'),
+('Administración de Recursos Humanos', 2, 3, 'A', 'Matutino', 'RRHH03'),
+('Estadística Aplicada', 3, 2, 'A', 'Matutino', 'ESTA02'),
+('Sistemas de Manufactura', 3, 5, 'B', 'Vespertino', 'MANU05'),
+('Circuitos Eléctricos', 4, 3, 'A', 'Matutino', 'CIRC03'),
+('Controladores Lógicos Programables', 4, 6, 'C', 'Vespertino', 'PLC06'),
+('Auditoría', 5, 7, 'A', 'Matutino', 'AUDI07'),
+('Sistemas de Comunicación', 6, 5, 'B', 'Vespertino', 'SCOM05'),
+('Diseño Estructural', 7, 4, 'A', 'Matutino', 'DEST04');
+
+-- Insertando Alumnos (30 alumnos como muestra robusta)
+INSERT INTO Alumnos (apellidopat, apellidomat, nombre, calle, colonia, telefono, correo, tutorapellidopat, tutorapellidomat, tutornombre, tutortelefono, tutortelefonoa, tutorcorreo, semestre, nocontrol, clave, idlicenciaturas, sexo, tipo, curp) VALUES
+('Perez', 'Garcia', 'Juan', 'Av. Siempre Viva 123', 'Centro', '5551234567', 'oaxaljuanpe@lameso.edu.mx', 'Perez', 'Lopez', 'Carlos', '5559876543', '5550001111', 'carlos.perez@email.com', 1, '12345678', '12345678', 1, 'M', 'Regular', 'PEGJ050101HDFR01'),
+('Lopez', 'Hernandez', 'Maria', 'Calle Luna 45', 'San Rafael', '5552345678', 'oaxalmarialo@lameso.edu.mx', 'Lopez', 'Martinez', 'Jose', '5558765432', '5551112222', 'jose.lopez@email.com', 2, '2310002', '12345602', 1, 'F', 'Regular', 'LOHM040202MDFR02'),
+('Gomez', 'Martinez', 'Pedro', 'Blvd Sol 67', 'Juarez', '5553456789', 'oaxalpedrogo@lameso.edu.mx', 'Gomez', 'Perez', 'Luis', '5557654321', '5552223333', 'luis.gomez@email.com', 3, '2310003', '12345603', 2, 'M', 'Regular', 'GOMP030303HDFR03'),
+('Hernandez', 'Gonzalez', 'Ana', 'Av. Estrellas 89', 'Roma', '5554567890', 'oaxalanahe@lameso.edu.mx', 'Hernandez', 'Garcia', 'Miguel', '5556543210', '5553334444', 'miguel.hernandez@email.com', 4, '2310004', '12345604', 3, 'F', 'Irregular', 'HEGA020404MDFR04'),
+('Martinez', 'Lopez', 'Luis', 'Calle Nubes 12', 'Condesa', '5555678901', 'oaxalluisma@lameso.edu.mx', 'Martinez', 'Hernandez', 'Roberto', '5555432109', '5554445555', 'roberto.martinez@email.com', 5, '2310005', '12345605', 4, 'M', 'Regular', 'MALL010505HDFR05'),
+('Gonzalez', 'Perez', 'Laura', 'Av. Bosque 34', 'Polanco', '5556789012', 'oaxallaurago@lameso.edu.mx', 'Gonzalez', 'Gomez', 'Fernando', '5554321098', '5555556666', 'fernando.gonzalez@email.com', 6, '2310006', '12345606', 5, 'F', 'Regular', 'GOPL000606MDFR06'),
+('Rodriguez', 'Gomez', 'Carlos', 'Calle Rio 56', 'Del Valle', '5557890123', 'oaxalcarlosro@lameso.edu.mx', 'Rodriguez', 'Martinez', 'Eduardo', '5553210987', '5556667777', 'eduardo.rodriguez@email.com', 7, '2310007', '12345607', 6, 'M', 'Regular', 'ROGC990707HDFR07'),
+('Sanchez', 'Hernandez', 'Sofia', 'Blvd Mar 78', 'Coyoacan', '5558901234', 'oaxalsofiasa@lameso.edu.mx', 'Sanchez', 'Lopez', 'Ricardo', '5552109876', '5557778888', 'ricardo.sanchez@email.com', 8, '2310008', '12345608', 7, 'F', 'Irregular', 'SAHS980808MDFR08'),
+('Ramirez', 'Martinez', 'Jorge', 'Av. Montana 90', 'Tlalpan', '5559012345', 'oaxaljorgera@lameso.edu.mx', 'Ramirez', 'Gonzalez', 'Javier', '5551098765', '5558889999', 'javier.ramirez@email.com', 9, '2310009', '12345609', 8, 'M', 'Regular', 'RAMJ970909HDFR09'),
+('Cruz', 'Gonzalez', 'Daniela', 'Calle Valle 123', 'Xochimilco', '5550123456', 'oaxaldanielacr@lameso.edu.mx', 'Cruz', 'Rodriguez', 'Alejandro', '5550987654', '5559990000', 'alejandro.cruz@email.com', 1, '2310010', '12345610', 9, 'F', 'Regular', 'CRGD961010MDFR10'),
+('Flores', 'Rodriguez', 'Diego', 'Av. Flores 45', 'Iztapalapa', '5551234568', 'oaxaldiegofl@lameso.edu.mx', 'Flores', 'Sanchez', 'Daniel', '5559876544', '5550001112', 'daniel.flores@email.com', 2, '2310011', '12345611', 10, 'M', 'Regular', 'FLRD951111HDFR11'),
+('Gomez', 'Sanchez', 'Valeria', 'Calle Arbol 67', 'Gustavo A. Madero', '5552345679', 'oaxalvaleriago@lameso.edu.mx', 'Gomez', 'Ramirez', 'Andres', '5558765433', '5551112223', 'andres.gomez@email.com', 3, '2310012', '12345612', 1, 'F', 'Irregular', 'GOSV941212MDFR12'),
+('Hernandez', 'Ramirez', 'Miguel', 'Blvd Sol 89', 'Venustiano Carranza', '5553456780', 'oaxalmiguelhe@lameso.edu.mx', 'Hernandez', 'Cruz', 'Gabriel', '5557654322', '5552223334', 'gabriel.hernandez@email.com', 4, '2310013', '12345613', 2, 'M', 'Regular', 'HERM930101HDFR13'),
+('Martinez', 'Cruz', 'Camila', 'Av. Luna 12', 'Azcapotzalco', '5554567891', 'oaxalcamilama@lameso.edu.mx', 'Martinez', 'Flores', 'David', '5556543211', '5553334445', 'david.martinez@email.com', 5, '2310014', '12345614', 3, 'F', 'Regular', 'MACC920202MDFR14'),
+('Gonzalez', 'Flores', 'Alejandro', 'Calle Estrella 34', 'Iztacalco', '5555678902', 'oaxalalejandrogo@lameso.edu.mx', 'Gonzalez', 'Gomez', 'Hugo', '5555432110', '5554445556', 'hugo.gonzalez@email.com', 6, '2310015', '12345615', 4, 'M', 'Irregular', 'GOFA910303HDFR15'),
+('Rodriguez', 'Gomez', 'Mariana', 'Av. Nube 56', 'Miguel Hidalgo', '5556789013', 'oaxalmarianaro@lameso.edu.mx', 'Rodriguez', 'Hernandez', 'Victor', '5554321099', '5555556667', 'victor.rodriguez@email.com', 7, '2310016', '12345616', 5, 'F', 'Regular', 'ROGM900404MDFR16'),
+('Sanchez', 'Hernandez', 'Emiliano', 'Calle Bosque 78', 'Alvaro Obregon', '5557890124', 'oaxalemilianosa@lameso.edu.mx', 'Sanchez', 'Martinez', 'Manuel', '5553210988', '5556667778', 'manuel.sanchez@email.com', 8, '2310017', '12345617', 6, 'M', 'Regular', 'SAHE890505HDFR17'),
+('Ramirez', 'Martinez', 'Renata', 'Blvd Rio 90', 'Cuajimalpa', '5558901235', 'oaxalrenatara@lameso.edu.mx', 'Ramirez', 'Gonzalez', 'Arturo', '5552109877', '5557778889', 'arturo.ramirez@email.com', 9, '2310018', '12345618', 7, 'F', 'Irregular', 'RAMR880606MDFR18'),
+('Cruz', 'Gonzalez', 'Sebastian', 'Av. Mar 123', 'Magdalena Contreras', '5559012346', 'oaxalsebastiancr@lameso.edu.mx', 'Cruz', 'Rodriguez', 'Oscar', '5551098766', '5558889990', 'oscar.cruz@email.com', 1, '2310019', '12345619', 8, 'M', 'Regular', 'CRGS870707HDFR19'),
+('Flores', 'Rodriguez', 'Natalia', 'Calle Montana 45', 'Milpa Alta', '5550123457', 'oaxalnataliafl@lameso.edu.mx', 'Flores', 'Sanchez', 'Hector', '5550987655', '5559990001', 'hector.flores@email.com', 2, '2310020', '12345620', 9, 'F', 'Regular', 'FLRN860808MDFR20'),
+('Gomez', 'Sanchez', 'Leonardo', 'Av. Valle 67', 'Tlahuac', '5551234569', 'oaxalleonardogo@lameso.edu.mx', 'Gomez', 'Ramirez', 'Raul', '5559876545', '5550001113', 'raul.gomez@email.com', 3, '2310021', '12345621', 10, 'M', 'Irregular', 'GOSL850909HDFR21'),
+('Hernandez', 'Ramirez', 'Valentina', 'Blvd Flores 89', 'Centro', '5552345680', 'oaxalvalentinahe@lameso.edu.mx', 'Hernandez', 'Cruz', 'Armando', '5558765434', '5551112224', 'armando.hernandez@email.com', 4, '2310022', '12345622', 1, 'F', 'Regular', 'HERV841010MDFR22'),
+('Martinez', 'Cruz', 'Mateo', 'Calle Arbol 12', 'San Rafael', '5553456781', 'oaxalmateoma@lameso.edu.mx', 'Martinez', 'Flores', 'Guillermo', '5557654323', '5552223335', 'guillermo.martinez@email.com', 5, '2310023', '12345623', 2, 'M', 'Regular', 'MACM831111HDFR23'),
+('Gonzalez', 'Flores', 'Isabella', 'Av. Sol 34', 'Juarez', '5554567892', 'oaxalisabellago@lameso.edu.mx', 'Gonzalez', 'Gomez', 'Ruben', '5556543212', '5553334446', 'ruben.gonzalez@email.com', 6, '2310024', '12345624', 3, 'F', 'Irregular', 'GOFI821212MDFR24'),
+('Rodriguez', 'Gomez', 'Matias', 'Calle Luna 56', 'Roma', '5555678903', 'oaxalmatiasro@lameso.edu.mx', 'Rodriguez', 'Hernandez', 'Gerardo', '5555432111', '5554445557', 'gerardo.rodriguez@email.com', 7, '2310025', '12345625', 4, 'M', 'Regular', 'ROGM810101HDFR25'),
+('Sanchez', 'Hernandez', 'Regina', 'Blvd Estrella 78', 'Condesa', '5556789014', 'oaxalreginasa@lameso.edu.mx', 'Sanchez', 'Martinez', 'Alberto', '5554321100', '5555556668', 'alberto.sanchez@email.com', 8, '2310026', '12345626', 5, 'F', 'Regular', 'SAHR800202MDFR26'),
+('Ramirez', 'Martinez', 'Nicolas', 'Av. Nube 90', 'Polanco', '5557890125', 'oaxalnicolasra@lameso.edu.mx', 'Ramirez', 'Gonzalez', 'Mauricio', '5553210989', '5556667779', 'mauricio.ramirez@email.com', 9, '2310027', '12345627', 6, 'M', 'Irregular', 'RAMN790303HDFR27'),
+('Cruz', 'Gonzalez', 'Ximena', 'Calle Bosque 123', 'Del Valle', '5558901236', 'oaxalximenacr@lameso.edu.mx', 'Cruz', 'Rodriguez', 'Pablo', '5552109878', '5557778890', 'pablo.cruz@email.com', 1, '2310028', '12345628', 7, 'F', 'Regular', 'CRGX780404MDFR28'),
+('Flores', 'Rodriguez', 'Gabriel', 'Av. Rio 45', 'Coyoacan', '5559012347', 'oaxalgabrielfl@lameso.edu.mx', 'Flores', 'Sanchez', 'Julio', '5551098767', '5558889991', 'julio.flores@email.com', 2, '2310029', '12345629', 8, 'M', 'Regular', 'FLRG770505HDFR29'),
+('Gomez', 'Sanchez', 'Samantha', 'Calle Mar 67', 'Tlalpan', '5550123458', 'oaxalsamanthago@lameso.edu.mx', 'Gomez', 'Ramirez', 'Sergio', '5550987656', '5559990002', 'sergio.gomez@email.com', 3, '2310030', '12345630', 9, 'F', 'Regular', 'GOSS760606MDFR30');

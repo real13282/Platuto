@@ -3,11 +3,11 @@ const path = require('path');
 const fs = require('fs');
 
 const knex = require('knex')({
-  client: 'sqlite3',
-  connection: {
-    filename: path.join(__dirname, 'dev.sqlite3')
-  },
-  useNullAsDefault: true
+    client: 'sqlite3',
+    connection: {
+        filename: path.join(__dirname, 'dev.sqlite3')
+    },
+    useNullAsDefault: true
 });
 
 async function setupDatabase() {
@@ -48,8 +48,43 @@ setupDatabase();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Servir archivos estáticos del directorio actual
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
 app.use(express.static(path.join(__dirname, '')));
+
+app.post('/api/login', async (req, res) => {
+    try {
+        const { nocontrol, password } = req.body;
+
+        if (!nocontrol || !password) {
+            return res.status(400).json({ success: false, message: 'Faltan credenciales' });
+        }
+
+        const claveProcesada = String(password).substring(0, 8);
+
+        const alumno = await knex('Alumnos')
+            .where({ nocontrol: nocontrol, clave: claveProcesada })
+            .first();
+
+        if (alumno) {
+            res.json({
+                success: true,
+                message: 'Login exitoso',
+                data: {
+                    id: alumno.idalumnos,
+                    nombre: alumno.nombre,
+                    nocontrol: alumno.nocontrol
+                }
+            });
+        } else {
+            res.status(401).json({ success: false, message: 'Número de control o contraseña incorrectos' });
+        }
+    } catch (error) {
+        console.error("Error en login:", error);
+        res.status(500).json({ success: false, message: 'Error interno en el servidor' });
+    }
+});
 
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));

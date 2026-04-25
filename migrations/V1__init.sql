@@ -34,7 +34,7 @@ CREATE TABLE IF NOT EXISTS Alumnos (
 CREATE TABLE IF NOT EXISTS Licenciaturas (
     idlicenciaturas INTEGER PRIMARY KEY AUTOINCREMENT,
     nombre_carrera TEXT NOT NULL,
-    periodo TEXT,
+    periodo INTEGER,
     especialidad TEXT
 );
 
@@ -59,5 +59,7 @@ CREATE TABLE IF NOT EXISTS Maestro (
     apellidomat TEXT,
     nombre TEXT NOT NULL,
     fechanacimiento DATE,
+    telefono TEXT,
+    correo TEXT,
     sexo TEXT
 );

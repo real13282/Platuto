@@ -162,7 +162,8 @@
         aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" role="document">
             <div class="modal-content">
-                <form onsubmit="event.preventDefault(); window.location.href='index.html';">
+                <form
+                    onsubmit="event.preventDefault(); document.getElementById('tipoTutor').value === 'alumno' ? window.location.href='registroAl_tutor.html' : window.location.href='index.html';">
                     <div class="modal-header bg-primary text-white"
                         style="background-color: #008B8B !important; border-bottom: none;">
                         <h5 class="modal-title font-weight-bold" id="modalTutorLabel">Registro de Tutor</h5>

@@ -47,6 +47,16 @@
                                         <h2 class="h5 text-gray-700 mb-4">INICIO DE SESIÓN!</h2>
                                     </div>
                                     <form class="user" id="loginForm">
+                                        <div class="form-group d-flex justify-content-center align-items-center mb-4">
+                                            <div class="custom-control custom-radio mx-3" style="transform: scale(1.2);">
+                                                <input type="radio" id="roleAsesorado" name="userRole" class="custom-control-input" value="asesorado" required oninvalid="this.setCustomValidity('Por favor selecciona un rol (Asesorado o Tutor)')" oninput="this.setCustomValidity('')">
+                                                <label class="custom-control-label text-dark" for="roleAsesorado" style="font-size: 1.1rem;">Asesorado</label>
+                                            </div>
+                                            <div class="custom-control custom-radio mx-3" style="transform: scale(1.2);">
+                                                <input type="radio" id="roleTutor" name="userRole" class="custom-control-input" value="tutor" required oninvalid="this.setCustomValidity('Por favor selecciona un rol (Asesorado o Tutor)')" oninput="this.setCustomValidity('')">
+                                                <label class="custom-control-label text-dark" for="roleTutor" style="font-size: 1.1rem;">Tutor</label>
+                                            </div>
+                                        </div>
                                         <div class="form-group">
                                             <input type="text" class="form-control form-control-user" id="numeroControl"
                                                 aria-describedby="numeroHelp" placeholder="Número de control"
@@ -101,6 +111,7 @@
 
             const nocontrol = document.getElementById('numeroControl').value;
             const password = document.getElementById('exampleInputPassword').value;
+            const role = document.querySelector('input[name="userRole"]:checked').value;
 
             // Validación en el frontend (solo números y exactamente 6 dígitos)
             if (!/^\d{6}$/.test(password)) {
@@ -114,7 +125,7 @@
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ nocontrol, password })
+                    body: JSON.stringify({ nocontrol, password, role })
                 });
 
                 const result = await response.json();

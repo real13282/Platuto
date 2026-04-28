@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -11,15 +12,32 @@
 
     <!-- Custom fonts for this template-->
     <link href="vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
-    <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"
+        rel="stylesheet">
 
     <!-- Custom styles for this template-->
     <link href="css/sb-admin-2.min.css" rel="stylesheet">
     <style>
-        .bg-platuto { background-color: #008B8B; }
-        .text-platuto { color: #008B8B; }
-        .btn-platuto { background-color: #008B8B; border-color: #008B8B; color: white; }
-        .btn-platuto:hover { background-color: #007373; border-color: #007373; color: white; }
+        .bg-platuto {
+            background-color: #008B8B;
+        }
+
+        .text-platuto {
+            color: #008B8B;
+        }
+
+        .btn-platuto {
+            background-color: #008B8B;
+            border-color: #008B8B;
+            color: white;
+        }
+
+        .btn-platuto:hover {
+            background-color: #007373;
+            border-color: #007373;
+            color: white;
+        }
     </style>
 </head>
 
@@ -34,67 +52,97 @@
                             <div class="col-lg-12">
                                 <div class="p-5">
                                     <div class="text-center">
-                                        <h1 class="h4 text-gray-900 mb-4 font-weight-bold">Registro de Tutor (Alumno)</h1>
-                                        <p class="mb-4">Completa el siguiente formulario para darte de alta como tutor en Platuto, selecciona tu carrera y el semestre actual para ver las materias que puedes impartir.</p>
+                                        <h1 class="h4 text-gray-900 mb-4 font-weight-bold">Registro de Tutor (Alumno)
+                                        </h1>
+                                        <p class="mb-4">Completa el siguiente formulario para darte de alta como tutor
+                                            en Platuto</p>
                                     </div>
                                     <form class="user" id="tutorForm">
-                                        
-                                        <h5 class="text-platuto font-weight-bold border-bottom pb-2 mb-4">Información Personal</h5>
-                                        
+
+                                        <h5 class="text-platuto font-weight-bold border-bottom pb-2 mb-4">Información
+                                            Personal</h5>
+
                                         <div class="form-group row">
                                             <div class="col-sm-6 mb-3 mb-sm-0">
-                                                <label for="nombre" class="ml-2 font-weight-bold">Nombre Completo</label>
-                                                <input type="text" class="form-control form-control-user" id="nombre" placeholder="Nombre completo" required>
+                                                <label for="nocontrol" class="ml-2 font-weight-bold">Número de
+                                                    Control</label>
+                                                <input type="text" class="form-control form-control-user" id="nocontrol"
+                                                    placeholder="Número de Control" readonly>
                                             </div>
                                             <div class="col-sm-6">
-                                                <label for="foto" class="ml-2 font-weight-bold">Foto de Perfil</label>
-                                                <input type="file" class="form-control-file ml-2 mt-2" id="foto" accept="image/*" required>
+                                                <label for="nombre" class="ml-2 font-weight-bold">Nombre
+                                                    Completo</label>
+                                                <input type="text" class="form-control form-control-user" id="nombre"
+                                                    placeholder="Nombre completo" readonly>
                                             </div>
                                         </div>
-                                        
                                         <div class="form-group row">
-                                            <div class="col-sm-6 mb-3 mb-sm-0">
+                                            <div class="col-sm-6">
                                                 <label for="correo" class="ml-2 font-weight-bold">Correo Electrónico</label>
-                                                <input type="email" class="form-control form-control-user" id="correo" placeholder="ejemplo@correo.com" required
-                                                    oninvalid="this.setCustomValidity('Ingresa un correo electrónico válido')"
-                                                    oninput="this.setCustomValidity('')">
+                                                <input type="text" class="form-control form-control-user" id="correo"
+                                                    placeholder="ejemplo@correo.com" readonly>
                                             </div>
                                             <div class="col-sm-6">
-                                                <label for="telefono" class="ml-2 font-weight-bold">Número de Teléfono</label>
-                                                <input type="tel" class="form-control form-control-user" id="telefono" placeholder="Ej. 1234567890" inputmode="numeric" pattern="[0-9]{10}" required
+                                                <label for="telefono" class="ml-2 font-weight-bold">Número de
+                                                    Teléfono</label>
+                                                <input type="tel" class="form-control form-control-user" id="telefono"
+                                                    placeholder="Ej. 1234567890" inputmode="numeric" pattern="[0-9]{10}" required
                                                     oninvalid="this.setCustomValidity('El teléfono debe tener exactamente 10 dígitos')"
                                                     oninput="this.setCustomValidity('')">
                                             </div>
                                         </div>
 
-                                        <h5 class="text-platuto font-weight-bold border-bottom pb-2 mt-5 mb-4">Información Académica</h5>
+                                        <div class="form-group row">
+                                            <div class="col-sm-6 mb-3 mb-sm-0">
+                                                <label for="foto" class="ml-2 font-weight-bold">Foto de Perfil</label>
+                                                <input type="file" class="form-control-file ml-2 mt-2" id="foto" accept="image/*"
+                                                    required>
+                                            </div>
+                                            <div class="col-sm-6">
+                                                <label for="cv" class="ml-2 font-weight-bold">Currículum Vitae</label>
+                                                <input type="file" class="form-control-file ml-2 mt-2" id="cv" accept=".pdf"
+                                                    required>
+                                            </div>
+                                        </div>
+
+                                        <h5 class="text-platuto font-weight-bold border-bottom pb-2 mt-5 mb-4">Información
+                                            Académica</h5>
 
                                         <div class="form-group row">
                                             <div class="col-sm-6 mb-3 mb-sm-0">
                                                 <label for="carrera" class="ml-2 font-weight-bold">Carrera</label>
-                                                <select class="form-control" style="border-radius: 10rem; height: 50px; padding-left: 20px;" id="carrera" required>
+                                                <select class="form-control"
+                                                    style="border-radius: 10rem; height: 50px; padding-left: 20px; pointer-events: none; background-color: #eaecf4;"
+                                                    id="carrera" required>
                                                     <option value="" disabled selected>Selecciona tu carrera...</option>
                                                 </select>
                                             </div>
                                             <div class="col-sm-6">
                                                 <label for="semestre" class="ml-2 font-weight-bold">Semestre Cursando</label>
-                                                <select class="form-control" style="border-radius: 10rem; height: 50px; padding-left: 20px;" id="semestre" required disabled>
-                                                    <option value="" disabled selected>Selecciona primero una carrera...</option>
+                                                <select class="form-control"
+                                                    style="border-radius: 10rem; height: 50px; padding-left: 20px; pointer-events: none; background-color: #eaecf4;"
+                                                    id="semestre" required>
+                                                    <option value="" disabled selected>Selecciona tu semestre...</option>
                                                 </select>
                                             </div>
                                         </div>
 
                                         <div class="form-group mt-4">
-                                            <label class="ml-2 font-weight-bold">Materias con oferta de tutoría (Selecciona al menos una)</label>
-                                            <div class="form-control" style="border-radius: 1rem; min-height: 150px; max-height: 300px; overflow-y: auto; padding: 15px; height: auto;" id="materiasContainer">
-                                                <p class="text-muted text-center mt-3">Selecciona tu semestre para ver materias disponibles...</p>
+                                            <label class="ml-2 font-weight-bold">Materias con oferta de tutoría (Selecciona al
+                                                menos una)</label>
+                                            <div class="form-control"
+                                                style="border-radius: 1rem; min-height: 150px; max-height: 300px; overflow-y: auto; padding: 15px; height: auto;"
+                                                id="materiasContainer">
+                                                <p class="text-muted text-center mt-3">Selecciona tu semestre para ver materias
+                                                    disponibles...</p>
                                             </div>
                                         </div>
 
-                                        <button type="submit" class="btn btn-platuto btn-user btn-block mt-5 font-weight-bold" style="font-size: 1.2rem;">
+                                        <button type="submit" class="btn btn-platuto btn-user btn-block mt-5 font-weight-bold"
+                                            style="font-size: 1.2rem;">
                                             Registrarme como Tutor
                                         </button>
-                                        
+
                                         <hr>
                                         <div class="text-center">
                                             <a class="small text-platuto" href="index.html">Cancelar y volver al inicio</a>
@@ -118,9 +166,10 @@
 
     <!-- Custom scripts for all pages-->
     <script src="js/sb-admin-2.min.js"></script>
-    
+
     <!-- Study Plans Logic -->
     <script src="js/planes_estudio.js"></script>
 
 </body>
+
 </html>

@@ -33,6 +33,7 @@ CREATE TABLE IF NOT EXISTS Asesorados (
     idasesorados INTEGER PRIMARY KEY AUTOINCREMENT,
     idalumnos INTEGER,
     materias TEXT,
+    url_foto_perfil TEXT,
     FOREIGN KEY (idalumnos) REFERENCES Alumnos(idalumnos)
 );
 
@@ -40,9 +41,12 @@ CREATE TABLE IF NOT EXISTS Asesorados (
 CREATE TABLE IF NOT EXISTS Tutores (
     idTutores INTEGER PRIMARY KEY AUTOINCREMENT,
     idmaestro INTEGER,
+    idalumnos INTEGER,
     url_cv TEXT,
+    url_foto_perfil TEXT,
     materias TEXT,
-    FOREIGN KEY (idmaestro) REFERENCES Maestro(idmaestro)
+    FOREIGN KEY (idmaestro) REFERENCES Maestro(idmaestro),
+    FOREIGN KEY (idalumnos) REFERENCES Alumnos(idalumnos)
 );
 
 -- Tabla: Licenciaturas

@@ -55,10 +55,10 @@ app.use(express.static(path.join(__dirname, '')));
 
 app.post('/api/login', async (req, res) => {
     try {
-        const { nocontrol, password } = req.body;
+        const { nocontrol, password, role } = req.body;
 
-        if (!nocontrol || !password) {
-            return res.status(400).json({ success: false, message: 'Faltan credenciales' });
+        if (!nocontrol || !password || !role) {
+            return res.status(400).json({ success: false, message: 'Faltan credenciales o el rol' });
         }
 
         const claveProcesada = String(password).substring(0, 8);
@@ -68,13 +68,25 @@ app.post('/api/login', async (req, res) => {
             .first();
 
         if (alumno) {
+            // Si el rol es tutor, verificamos si está en la tabla Tutores
+            if (role === 'tutor') {
+                const tutor = await knex('Tutores')
+                    .where({ idalumnos: alumno.idalumnos })
+                    .first();
+                
+                if (!tutor) {
+                    return res.status(403).json({ success: false, message: 'El usuario no está registrado como tutor. Por favor regístrate.' });
+                }
+            }
+
             res.json({
                 success: true,
                 message: 'Login exitoso',
                 data: {
                     id: alumno.idalumnos,
                     nombre: alumno.nombre,
-                    nocontrol: alumno.nocontrol
+                    nocontrol: alumno.nocontrol,
+                    role: role
                 }
             });
         } else {
@@ -82,6 +94,130 @@ app.post('/api/login', async (req, res) => {
         }
     } catch (error) {
         console.error("Error en login:", error);
+        res.status(500).json({ success: false, message: 'Error interno en el servidor' });
+    }
+});
+
+app.post('/api/register/asesorado', async (req, res) => {
+    try {
+        const { nocontrol } = req.body;
+
+        if (!nocontrol) {
+            return res.status(400).json({ success: false, message: 'Falta el número de control' });
+        }
+
+        const alumno = await knex('Alumnos').where({ nocontrol: nocontrol }).first();
+
+        if (!alumno) {
+            return res.status(404).json({ success: false, message: 'El número de control no existe en nuestros registros' });
+        }
+
+        // Verificar si ya está como asesorado
+        const asesorado = await knex('Asesorados').where({ idalumnos: alumno.idalumnos }).first();
+        if (!asesorado) {
+            await knex('Asesorados').insert({
+                idalumnos: alumno.idalumnos,
+                materias: ''
+            });
+        }
+
+        res.json({ success: true, message: 'Registro de asesorado exitoso', data: { nocontrol: alumno.nocontrol }});
+    } catch (error) {
+        console.error("Error en registro de asesorado:", error);
+        res.status(500).json({ success: false, message: 'Error interno en el servidor' });
+    }
+});
+
+app.post('/api/register/tutor', async (req, res) => {
+    try {
+        const { nocontrol, nombre, correo, telefono, carrera, semestre, materias } = req.body;
+
+        if (!nocontrol || !materias || materias.length === 0) {
+            return res.status(400).json({ success: false, message: 'Faltan datos obligatorios' });
+        }
+
+        const alumno = await knex('Alumnos').where({ nocontrol: nocontrol }).first();
+
+        if (!alumno) {
+            return res.status(404).json({ success: false, message: 'El número de control no existe en nuestros registros' });
+        }
+
+        // Actualizar correo y teléfono en Alumnos si vienen en la petición
+        await knex('Alumnos')
+            .where({ idalumnos: alumno.idalumnos })
+            .update({ correo: correo, telefono: telefono });
+
+        // Registrar o actualizar en Tutores
+        const tutor = await knex('Tutores').where({ idalumnos: alumno.idalumnos }).first();
+        const materiasStr = materias.join(',');
+
+        if (tutor) {
+            await knex('Tutores')
+                .where({ idalumnos: alumno.idalumnos })
+                .update({ materias: materiasStr });
+        } else {
+            await knex('Tutores').insert({
+                idalumnos: alumno.idalumnos,
+                materias: materiasStr,
+                url_cv: ''
+            });
+        }
+
+        res.json({ success: true, message: 'Registro de tutor exitoso' });
+    } catch (error) {
+        console.error("Error en registro de tutor:", error);
+        res.status(500).json({ success: false, message: 'Error interno en el servidor' });
+    }
+});
+
+app.get('/api/alumnos/:nocontrol', async (req, res) => {
+    try {
+        const { nocontrol } = req.params;
+        const alumno = await knex('Alumnos')
+            .leftJoin('Licenciaturas', 'Alumnos.idlicenciaturas', 'Licenciaturas.idlicenciaturas')
+            .where({ nocontrol: nocontrol })
+            .select('Alumnos.*', 'Licenciaturas.nombre_carrera')
+            .first();
+
+        if (alumno) {
+            res.json({ success: true, data: alumno });
+        } else {
+            res.status(404).json({ success: false, message: 'Alumno no encontrado' });
+        }
+    } catch (error) {
+        console.error("Error al buscar alumno:", error);
+        res.status(500).json({ success: false, message: 'Error interno en el servidor' });
+    }
+});
+
+app.get('/api/planes-estudio', async (req, res) => {
+    try {
+        const materias = await knex('Materias')
+            .join('Licenciaturas', 'Materias.idlicenciaturas', '=', 'Licenciaturas.idlicenciaturas')
+            .select('Materias.materia', 'Materias.semestre', 'Licenciaturas.nombre_carrera as carrera');
+
+        const planesEstudio = {};
+
+        materias.forEach(row => {
+            // Unify case based on frontend expectations if necessary, 
+            // but Licenciaturas table has exact string values we can use.
+            const carrera = row.carrera.toLowerCase() === 'arquitectura' ? 'Licenciatura en arquitectura' : row.carrera;
+            // The JSON had "Licenciatura en administración", "Licenciatura en arquitectura", etc.
+            // Let's standardize the keys dynamically by capitalizing only the first letter.
+            // Actually, just sending the name from DB is fine, the frontend uses Object.keys(data).
+            
+            if (!planesEstudio[carrera]) {
+                planesEstudio[carrera] = {};
+            }
+            if (!planesEstudio[carrera][row.semestre]) {
+                planesEstudio[carrera][row.semestre] = [];
+            }
+            planesEstudio[carrera][row.semestre].push(row.materia);
+        });
+
+        res.json({ success: true, data: planesEstudio });
+    } catch (error) {
+        console.error("Error al obtener planes de estudio:", error);
         res.status(500).json({ success: false, message: 'Error interno en el servidor' });
     }
 });

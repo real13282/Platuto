@@ -127,7 +127,7 @@
         aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" role="document">
             <div class="modal-content">
-                <form onsubmit="event.preventDefault(); window.location.href='index.html';">
+                <form id="formRegistroAsesorado">
                     <div class="modal-header bg-primary text-white"
                         style="background-color: #008B8B !important; border-bottom: none;">
                         <h5 class="modal-title font-weight-bold" id="modalAsesoradoLabel">Registro de Asesorado</h5>
@@ -162,8 +162,7 @@
         aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" role="document">
             <div class="modal-content">
-                <form
-                    onsubmit="event.preventDefault(); document.getElementById('tipoTutor').value === 'alumno' ? window.location.href='registroAl_tutor.html' : window.location.href='index.html';">
+                <form id="formRegistroTutor">
                     <div class="modal-header bg-primary text-white"
                         style="background-color: #008B8B !important; border-bottom: none;">
                         <h5 class="modal-title font-weight-bold" id="modalTutorLabel">Registro de Tutor</h5>
@@ -213,6 +212,45 @@
     <!-- Custom scripts for all pages-->
     <script src="js/sb-admin-2.min.js"></script>
 
+    <script>
+        document.getElementById('formRegistroAsesorado').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const nocontrol = document.getElementById('numeroControlAsesorado').value;
+            
+            try {
+                const response = await fetch('/api/register/asesorado', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nocontrol })
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('Registro de asesorado exitoso. Puedes iniciar sesión.');
+                    window.location.href = 'login.html';
+                } else {
+                    alert(result.message);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Ocurrió un error al registrar el asesorado.');
+            }
+        });
+
+        document.getElementById('formRegistroTutor').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const tipo = document.getElementById('tipoTutor').value;
+            const nocontrol = document.getElementById('numeroControlTutor').value;
+            
+            if (tipo === 'alumno') {
+                window.location.href = 'registroAl_tutor.html?nocontrol=' + encodeURIComponent(nocontrol);
+            } else {
+                // Si es maestro, por ahora lo mandamos al index o a una vista pendiente
+                alert('El registro para maestros está en construcción.');
+                window.location.href = 'index.html';
+            }
+        });
+    </script>
 </body>
 
 </html>

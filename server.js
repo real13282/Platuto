@@ -73,7 +73,7 @@ app.post('/api/login', async (req, res) => {
                 const tutor = await knex('Tutores')
                     .where({ idalumnos: alumno.idalumnos })
                     .first();
-                
+
                 if (!tutor) {
                     return res.status(403).json({ success: false, message: 'El usuario no está registrado como tutor. Por favor regístrate.' });
                 }
@@ -121,7 +121,7 @@ app.post('/api/register/asesorado', async (req, res) => {
             });
         }
 
-        res.json({ success: true, message: 'Registro de asesorado exitoso', data: { nocontrol: alumno.nocontrol }});
+        res.json({ success: true, message: 'Registro de asesorado exitoso', data: { nocontrol: alumno.nocontrol } });
     } catch (error) {
         console.error("Error en registro de asesorado:", error);
         res.status(500).json({ success: false, message: 'Error interno en el servidor' });
@@ -199,13 +199,8 @@ app.get('/api/planes-estudio', async (req, res) => {
         const planesEstudio = {};
 
         materias.forEach(row => {
-            // Unify case based on frontend expectations if necessary, 
-            // but Licenciaturas table has exact string values we can use.
             const carrera = row.carrera.toLowerCase() === 'arquitectura' ? 'Licenciatura en arquitectura' : row.carrera;
-            // The JSON had "Licenciatura en administración", "Licenciatura en arquitectura", etc.
-            // Let's standardize the keys dynamically by capitalizing only the first letter.
-            // Actually, just sending the name from DB is fine, the frontend uses Object.keys(data).
-            
+
             if (!planesEstudio[carrera]) {
                 planesEstudio[carrera] = {};
             }

@@ -38,7 +38,17 @@ const knex = require('knex')({
 });
 
 async function setupDatabase() {
-    console.log("🔍 Verificando estado de la base de datos...");
+    console.log("🔍 Verificando directorios y base de datos...");
+
+    // Asegurar que existan los directorios de carga
+    const dirs = ['cv', 'fotoPerfil'];
+    dirs.forEach(dir => {
+        const fullPath = path.join(__dirname, dir);
+        if (!fs.existsSync(fullPath)) {
+            fs.mkdirSync(fullPath, { recursive: true });
+            console.log(`✅ Directorio creado: ${dir}`);
+        }
+    });
 
     // Ejecutar Estructura (V1__init.sql)
     const sqlPath = path.join(__dirname, 'migrations', 'V1__init.sql');
@@ -200,6 +210,7 @@ app.post('/api/register/tutor', upload.fields([{ name: 'foto', maxCount: 1 }, { 
         } else {
             await knex('Tutores').insert({
                 idalumnos: alumno.idalumnos,
+                idmaestro: null, // Opcional, pero explícito
                 materias: materiasStr,
                 url_cv: url_cv,
                 url_foto_perfil: url_foto_perfil

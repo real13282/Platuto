@@ -1,6 +1,33 @@
 const express = require('express');
 const path = require('path');
 const fs = require('fs');
+const multer = require('multer');
+
+// Configuración de almacenamiento para Multer
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        if (file.fieldname === 'cv') {
+            cb(null, 'cv/');
+        } else if (file.fieldname === 'foto') {
+            cb(null, 'fotoPerfil/');
+        } else {
+            cb(new Error('Campo de archivo no reconocido'), false);
+        }
+    },
+    filename: function (req, file, cb) {
+        // Obtenemos el nocontrol del body
+        const nocontrol = req.body.nocontrol || 'default';
+        const ext = path.extname(file.originalname);
+
+        if (file.fieldname === 'cv') {
+            cb(null, `cv${nocontrol}${ext}`);
+        } else if (file.fieldname === 'foto') {
+            cb(null, `fp${nocontrol}${ext}`);
+        }
+    }
+});
+
+const upload = multer({ storage: storage });
 
 const knex = require('knex')({
     client: 'sqlite3',
@@ -128,9 +155,17 @@ app.post('/api/register/asesorado', async (req, res) => {
     }
 });
 
-app.post('/api/register/tutor', async (req, res) => {
+app.post('/api/register/tutor', upload.fields([{ name: 'foto', maxCount: 1 }, { name: 'cv', maxCount: 1 }]), async (req, res) => {
     try {
-        const { nocontrol, nombre, correo, telefono, carrera, semestre, materias } = req.body;
+        let { nocontrol, nombre, correo, telefono, carrera, semestre, materias } = req.body;
+
+        if (typeof materias === 'string') {
+            try {
+                materias = JSON.parse(materias);
+            } catch (error) {
+                console.error("Error al parsear materias:", error);
+            }
+        }
 
         if (!nocontrol || !materias || materias.length === 0) {
             return res.status(400).json({ success: false, message: 'Faltan datos obligatorios' });
@@ -149,17 +184,25 @@ app.post('/api/register/tutor', async (req, res) => {
 
         // Registrar o actualizar en Tutores
         const tutor = await knex('Tutores').where({ idalumnos: alumno.idalumnos }).first();
-        const materiasStr = materias.join(',');
+        const materiasStr = Array.isArray(materias) ? materias.join(',') : materias;
+
+        const url_cv = req.files && req.files['cv'] ? req.files['cv'][0].path.replace(/\\/g, '/') : (tutor ? tutor.url_cv : '');
+        const url_foto_perfil = req.files && req.files['foto'] ? req.files['foto'][0].path.replace(/\\/g, '/') : (tutor ? tutor.url_foto_perfil : '');
 
         if (tutor) {
             await knex('Tutores')
                 .where({ idalumnos: alumno.idalumnos })
-                .update({ materias: materiasStr });
+                .update({
+                    materias: materiasStr,
+                    url_cv: url_cv,
+                    url_foto_perfil: url_foto_perfil
+                });
         } else {
             await knex('Tutores').insert({
                 idalumnos: alumno.idalumnos,
                 materias: materiasStr,
-                url_cv: ''
+                url_cv: url_cv,
+                url_foto_perfil: url_foto_perfil
             });
         }
 

@@ -39,6 +39,7 @@
         "jquery": "3.6.0",
         "jquery.easing": "^1.4.1",
         "knex": "^3.2.9",
+        "multer": "^2.1.1",
         "sqlite3": "^6.0.1"
     },
     "devDependencies": {

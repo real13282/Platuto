@@ -103,6 +103,10 @@ const planesEstudio = {
 };
 
 document.addEventListener('DOMContentLoaded', async () => {
+    const carreraSelect = document.getElementById('carrera');
+    const semestreSelect = document.getElementById('semestre');
+    const materiasContainer = document.getElementById('materiasContainer');
+    const tutorForm = document.getElementById('tutorForm');
 
     // Populate carreras
     const carreras = Object.keys(planesEstudio).sort();
@@ -182,46 +186,87 @@ document.addEventListener('DOMContentLoaded', async () => {
         const selectedSemestre = parseInt(semestreSelect.value);
         const semestresObj = planesEstudio[carrera];
 
-        // Gather all subjects up to the selected semester
-        let availableSubjects = [];
+        // Populate Materias grouped by semester
+        materiasContainer.innerHTML = ''; // clear options
+        let hasMaterias = false;
+        let seenSubjects = new Set();
+
         for (let i = 1; i <= selectedSemestre; i++) {
-            if (semestresObj[i]) {
-                // Add unique subjects to the array (removing potential duplicates from specializations)
-                semestresObj[i].forEach(materia => {
-                    if (!availableSubjects.includes(materia)) {
-                        availableSubjects.push(materia);
-                    }
+            if (semestresObj[i] && semestresObj[i].length > 0) {
+                // Filter out already seen subjects to prevent duplicates across semesters
+                const materiasDeSemestre = semestresObj[i].filter(m => {
+                    if (seenSubjects.has(m)) return false;
+                    seenSubjects.add(m);
+                    return true;
+                }).sort();
+
+                if (materiasDeSemestre.length === 0) continue;
+                
+                hasMaterias = true;
+
+                const semesterWrapper = document.createElement('div');
+                semesterWrapper.className = 'mb-3';
+
+                const toggleBtn = document.createElement('button');
+                toggleBtn.type = 'button';
+                toggleBtn.className = 'btn btn-light btn-block text-left font-weight-bold d-flex justify-content-between align-items-center shadow-sm';
+                toggleBtn.style.backgroundColor = '#eaecf4';
+                toggleBtn.style.color = '#5a5c69';
+                toggleBtn.style.borderRadius = '0.5rem';
+                
+                const titleSpan = document.createElement('span');
+                titleSpan.textContent = `${i}° Semestre`;
+                
+                // Expand only the currently selected semester to avoid overwhelming the user
+                const isCurrent = (i === selectedSemestre);
+                
+                const icon = document.createElement('i');
+                icon.className = 'fas fa-chevron-down';
+                icon.style.transition = 'transform 0.3s ease';
+                icon.style.transform = isCurrent ? 'rotate(180deg)' : 'rotate(0deg)';
+                
+                toggleBtn.appendChild(titleSpan);
+                toggleBtn.appendChild(icon);
+
+                const ul = document.createElement('ul');
+                ul.className = 'list-unstyled mt-2 pl-3 py-2';
+                ul.style.display = isCurrent ? 'block' : 'none';
+                ul.style.borderLeft = '3px solid #008B8B';
+
+                toggleBtn.addEventListener('click', () => {
+                    const isHidden = ul.style.display === 'none';
+                    ul.style.display = isHidden ? 'block' : 'none';
+                    icon.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';
                 });
+
+                materiasDeSemestre.forEach((materia, index) => {
+                    const li = document.createElement('li');
+                    li.className = 'custom-control custom-checkbox mb-2';
+
+                    const input = document.createElement('input');
+                    input.type = 'checkbox';
+                    input.className = 'custom-control-input subject-checkbox';
+                    input.id = `materia_${i}_${index}`;
+                    input.value = materia;
+                    input.name = 'materias';
+
+                    const label = document.createElement('label');
+                    label.className = 'custom-control-label text-dark';
+                    label.htmlFor = `materia_${i}_${index}`;
+                    label.textContent = materia;
+
+                    li.appendChild(input);
+                    li.appendChild(label);
+                    ul.appendChild(li);
+                });
+
+                semesterWrapper.appendChild(toggleBtn);
+                semesterWrapper.appendChild(ul);
+                materiasContainer.appendChild(semesterWrapper);
             }
         }
 
-        // Sort alphabetically
-        availableSubjects.sort();
-
-        // Populate Materias
-        materiasContainer.innerHTML = ''; // clear options
-        if (availableSubjects.length > 0) {
-            availableSubjects.forEach((materia, index) => {
-                const div = document.createElement('div');
-                div.className = 'custom-control custom-checkbox mb-2';
-
-                const input = document.createElement('input');
-                input.type = 'checkbox';
-                input.className = 'custom-control-input subject-checkbox';
-                input.id = `materia_${index}`;
-                input.value = materia;
-                input.name = 'materias';
-
-                const label = document.createElement('label');
-                label.className = 'custom-control-label text-dark';
-                label.htmlFor = `materia_${index}`;
-                label.textContent = materia;
-
-                div.appendChild(input);
-                div.appendChild(label);
-                materiasContainer.appendChild(div);
-            });
-        } else {
+        if (!hasMaterias) {
             materiasContainer.innerHTML = '<p class="text-muted text-center mt-3">No hay materias disponibles para este semestre.</p>';
         }
     });
@@ -234,6 +279,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         const selectedCheckboxes = document.querySelectorAll('.subject-checkbox:checked');
         if (selectedCheckboxes.length === 0) {
             alert('Por favor, selecciona al menos una materia para impartir tutoría.');
+            return;
+        }
+
+        // Telephone Validation
+        const telefono = document.getElementById('telefono').value;
+        if (!/^\d{10}$/.test(telefono)) {
+            alert('El número de teléfono debe contener exactamente 10 dígitos numéricos.');
             return;
         }
 

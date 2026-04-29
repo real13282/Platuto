@@ -88,9 +88,9 @@
                                                     Teléfono</label>
                                                 <input type="tel" class="form-control form-control-user" id="telefono"
                                                     placeholder="Ej. 1234567890" inputmode="numeric" pattern="[0-9]{10}"
-                                                    required
+                                                    required maxlength="10"
                                                     oninvalid="this.setCustomValidity('El teléfono debe tener exactamente 10 dígitos')"
-                                                    oninput="this.setCustomValidity('')">
+                                                    oninput="this.value = this.value.replace(/[^0-9]/g, ''); this.setCustomValidity('');">
                                             </div>
                                         </div>
 

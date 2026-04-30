@@ -57,6 +57,21 @@
                                         <p class="mb-4">Completa el siguiente formulario para darte de alta como tutor
                                             en Platuto</p>
                                     </div>
+
+                                    <!-- Alerta: alumno de 1er semestre no puede registrarse -->
+                                    <div id="alertaSemestre1" style="display:none;" class="text-center py-4">
+                                        <div class="mb-3">
+                                            <i class="fas fa-graduation-cap fa-4x" style="color:#008B8B;"></i>
+                                        </div>
+                                        <h5 class="font-weight-bold text-gray-800 mb-2">¡Aún no puedes ser tutor!</h5>
+                                        <p class="text-muted mb-4">
+                                            Los alumnos de <strong>1° Semestre</strong> no pueden registrarse como tutores,
+                                            ya que aún no cuentan con materias cursadas para poder asesorar.<br>
+                                            <span class="text-platuto font-weight-bold">¡Vuelve a partir de 2° Semestre!</span>
+                                        </p>
+                                        <a href="index.html" class="btn btn-platuto btn-user px-5 font-weight-bold">Volver al inicio</a>
+                                    </div>
+
                                     <form class="user" id="tutorForm">
 
                                         <h5 class="text-platuto font-weight-bold border-bottom pb-2 mb-4">Información
@@ -122,13 +137,17 @@
                                             </div>
                                             <div class="col-sm-6">
                                                 <label for="semestre" class="ml-2 font-weight-bold">Semestre
-                                                    Cursando</label>
+                                                    Actual</label>
                                                 <select class="form-control"
                                                     style="border-radius: 10rem; height: 50px; padding-left: 20px; pointer-events: none; background-color: #eaecf4;"
                                                     id="semestre" required>
                                                     <option value="" disabled selected>Selecciona tu semestre...
                                                     </option>
                                                 </select>
+                                                <small class="text-muted ml-2 mt-1 d-block">
+                                                    <i class="fas fa-info-circle text-platuto"></i>
+                                                    Solo podrás ofrecer tutoría de semestres anteriores al que cursas.
+                                                </small>
                                             </div>
                                         </div>
 

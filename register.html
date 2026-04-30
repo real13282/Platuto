@@ -127,7 +127,7 @@
         aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" role="document">
             <div class="modal-content">
-                <form id="formRegistroAsesorado">
+                <form id="formRegistroAsesorado" novalidate>
                     <div class="modal-header bg-primary text-white"
                         style="background-color: #008B8B !important; border-bottom: none;">
                         <h5 class="modal-title font-weight-bold" id="modalAsesoradoLabel">Registro de Asesorado</h5>
@@ -136,21 +136,29 @@
                         </button>
                     </div>
                     <div class="modal-body p-4">
-                        <p class="mb-4 text-center">Por favor ingresa tu número de control para continuar:</p>
-                        <div class="form-group">
-                            <label for="numeroControlAsesorado" class="font-weight-bold text-gray-800">Número de
-                                Control</label>
+                        <p class="mb-3 text-center">Por favor ingresa tu número de control para continuar:</p>
+
+                        <!-- Alerta inline -->
+                        <div id="alertaAsesorado" class="alert alert-danger d-none align-items-center mb-3" role="alert">
+                            <i class="fas fa-exclamation-circle mr-2"></i>
+                            <span id="alertaAsesoradoMsg"></span>
+                        </div>
+
+                        <div class="form-group mb-0">
+                            <label for="numeroControlAsesorado" class="font-weight-bold text-gray-800">Número de Control</label>
                             <input type="text" class="form-control form-control-user" id="numeroControlAsesorado"
-                                placeholder="Ej. 12345678" inputmode="numeric" pattern="[0-9]{8}" minlength="8"
-                                maxlength="8"
-                                oninvalid="this.value === '' ? this.setCustomValidity('El número de control es requerido') : this.setCustomValidity('El número debe tener exactamente 8 dígitos (solo números)')"
-                                oninput="this.setCustomValidity('')" required>
+                                placeholder="Ej. 12345678" inputmode="numeric" maxlength="8"
+                                oninput="this.value = this.value.replace(/[^0-9]/g, ''); document.getElementById('alertaAsesorado').classList.add('d-none');"
+                                required>
                         </div>
                     </div>
                     <div class="modal-footer border-top-0 justify-content-center">
                         <button type="button" class="btn btn-secondary px-4" data-dismiss="modal">Cerrar</button>
-                        <button type="submit" class="btn btn-primary px-4"
-                            style="background-color: #008B8B; border-color: #008B8B;">Enviar</button>
+                        <button type="submit" id="btnSubmitAsesorado" class="btn btn-primary px-4"
+                            style="background-color: #008B8B; border-color: #008B8B; min-width: 110px;">
+                            <span id="btnAsesoradoTexto">Continuar</span>
+                            <span id="btnAsesoradoSpinner" class="spinner-border spinner-border-sm d-none" role="status"></span>
+                        </button>
                     </div>
                 </form>
             </div>
@@ -162,7 +170,7 @@
         aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" role="document">
             <div class="modal-content">
-                <form id="formRegistroTutor">
+                <form id="formRegistroTutor" novalidate>
                     <div class="modal-header bg-primary text-white"
                         style="background-color: #008B8B !important; border-bottom: none;">
                         <h5 class="modal-title font-weight-bold" id="modalTutorLabel">Registro de Tutor</h5>
@@ -171,31 +179,38 @@
                         </button>
                     </div>
                     <div class="modal-body p-4">
-                        <p class="mb-4 text-center">Selecciona tu rol e ingresa tu número de control:</p>
+                        <p class="mb-3 text-center">Selecciona tu rol e ingresa tu número de control:</p>
+
+                        <!-- Alerta inline -->
+                        <div id="alertaTutor" class="alert alert-danger d-none align-items-center mb-3" role="alert">
+                            <i class="fas fa-exclamation-circle mr-2"></i>
+                            <span id="alertaTutorMsg"></span>
+                        </div>
+
                         <div class="form-group">
                             <label for="tipoTutor" class="font-weight-bold text-gray-800">Tipo de Tutor</label>
                             <select class="form-control" id="tipoTutor" required
-                                oninvalid="this.setCustomValidity('Por favor selecciona una opción')"
-                                oninput="this.setCustomValidity('')">
+                                oninput="document.getElementById('alertaTutor').classList.add('d-none');">
                                 <option value="" disabled selected>Selecciona una opción...</option>
                                 <option value="alumno">Alumno</option>
                                 <option value="maestro">Maestro</option>
                             </select>
                         </div>
-                        <div class="form-group mt-3">
-                            <label for="numeroControlTutor" class="font-weight-bold text-gray-800">Número de
-                                Control</label>
+                        <div class="form-group mt-3 mb-0">
+                            <label for="numeroControlTutor" class="font-weight-bold text-gray-800">Número de Control</label>
                             <input type="text" class="form-control form-control-user" id="numeroControlTutor"
-                                placeholder="Ej. 12345678" inputmode="numeric" pattern="[0-9]{8}" minlength="8"
-                                maxlength="8"
-                                oninvalid="this.value === '' ? this.setCustomValidity('El número de control es requerido') : this.setCustomValidity('El número debe tener exactamente 8 dígitos (solo números)')"
-                                oninput="this.setCustomValidity('')" required>
+                                placeholder="Ej. 12345678" inputmode="numeric" maxlength="8"
+                                oninput="this.value = this.value.replace(/[^0-9]/g, ''); document.getElementById('alertaTutor').classList.add('d-none');"
+                                required>
                         </div>
                     </div>
                     <div class="modal-footer border-top-0 justify-content-center">
                         <button type="button" class="btn btn-secondary px-4" data-dismiss="modal">Cerrar</button>
-                        <button type="submit" class="btn btn-primary px-4"
-                            style="background-color: #008B8B; border-color: #008B8B;">Enviar</button>
+                        <button type="submit" id="btnSubmitTutor" class="btn btn-primary px-4"
+                            style="background-color: #008B8B; border-color: #008B8B; min-width: 110px;">
+                            <span id="btnTutorTexto">Continuar</span>
+                            <span id="btnTutorSpinner" class="spinner-border spinner-border-sm d-none" role="status"></span>
+                        </button>
                     </div>
                 </form>
             </div>
@@ -213,44 +228,122 @@
     <script src="js/sb-admin-2.min.js"></script>
 
     <script>
-        document.getElementById('formRegistroAsesorado').addEventListener('submit', async function(e) {
+        // ── Helper: mostrar alerta inline ────────────────────────────────────
+        function mostrarAlerta(idAlerta, idMensaje, mensaje) {
+            const alerta = document.getElementById(idAlerta);
+            document.getElementById(idMensaje).textContent = mensaje;
+            alerta.classList.remove('d-none');
+            alerta.classList.add('d-flex');
+        }
+
+        // ── Helper: toggle botón de carga ─────────────────────────────────────
+        function setLoading(idBtn, idTexto, idSpinner, loading) {
+            document.getElementById(idBtn).disabled = loading;
+            document.getElementById(idTexto).classList.toggle('d-none', loading);
+            document.getElementById(idSpinner).classList.toggle('d-none', !loading);
+        }
+
+        // ── Helper: verificar nocontrol en la BD ──────────────────────────────
+        async function verificarNocontrol(nocontrol) {
+            const res = await fetch('/api/alumnos/' + encodeURIComponent(nocontrol));
+            return await res.json(); // { success, data, message }
+        }
+
+        // ── Limpiar alertas al cerrar modales ─────────────────────────────────
+        $('#modalAsesorado').on('hidden.bs.modal', function () {
+            document.getElementById('alertaAsesorado').classList.add('d-none');
+            document.getElementById('alertaAsesorado').classList.remove('d-flex');
+            document.getElementById('formRegistroAsesorado').reset();
+        });
+        $('#modalTutor').on('hidden.bs.modal', function () {
+            document.getElementById('alertaTutor').classList.add('d-none');
+            document.getElementById('alertaTutor').classList.remove('d-flex');
+            document.getElementById('formRegistroTutor').reset();
+        });
+
+        // ── Formulario Asesorado ──────────────────────────────────────────────
+        document.getElementById('formRegistroAsesorado').addEventListener('submit', async function (e) {
             e.preventDefault();
-            const nocontrol = document.getElementById('numeroControlAsesorado').value;
-            
+            const nocontrol = document.getElementById('numeroControlAsesorado').value.trim();
+
+            if (!/^\d{8}$/.test(nocontrol)) {
+                mostrarAlerta('alertaAsesorado', 'alertaAsesoradoMsg', 'El número de control debe tener exactamente 8 dígitos numéricos.');
+                return;
+            }
+
+            setLoading('btnSubmitAsesorado', 'btnAsesoradoTexto', 'btnAsesoradoSpinner', true);
+
             try {
+                // 1. Verificar que el nocontrol existe en la BD
+                const verificacion = await verificarNocontrol(nocontrol);
+                if (!verificacion.success) {
+                    mostrarAlerta('alertaAsesorado', 'alertaAsesoradoMsg', 'El número de control no está registrado en el sistema. Verifica e intenta de nuevo.');
+                    return;
+                }
+
+                // 2. Proceder con el registro de asesorado
                 const response = await fetch('/api/register/asesorado', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ nocontrol })
                 });
                 const result = await response.json();
-                
+
                 if (result.success) {
-                    alert('Registro de asesorado exitoso. Puedes iniciar sesión.');
+                    $('#modalAsesorado').modal('hide');
+                    alert('¡Registro de asesorado exitoso! Puedes iniciar sesión.');
                     window.location.href = 'login.html';
                 } else {
-                    alert(result.message);
+                    mostrarAlerta('alertaAsesorado', 'alertaAsesoradoMsg', result.message || 'Error al registrar. Intenta de nuevo.');
                 }
             } catch (error) {
                 console.error('Error:', error);
-                alert('Ocurrió un error al registrar el asesorado.');
+                mostrarAlerta('alertaAsesorado', 'alertaAsesoradoMsg', 'Error de conexión. Verifica tu red e intenta de nuevo.');
+            } finally {
+                setLoading('btnSubmitAsesorado', 'btnAsesoradoTexto', 'btnAsesoradoSpinner', false);
             }
         });
 
-        document.getElementById('formRegistroTutor').addEventListener('submit', function(e) {
+        // ── Formulario Tutor ──────────────────────────────────────────────────
+        document.getElementById('formRegistroTutor').addEventListener('submit', async function (e) {
             e.preventDefault();
             const tipo = document.getElementById('tipoTutor').value;
-            const nocontrol = document.getElementById('numeroControlTutor').value;
-            
-            if (tipo === 'alumno') {
+            const nocontrol = document.getElementById('numeroControlTutor').value.trim();
+
+            if (!tipo) {
+                mostrarAlerta('alertaTutor', 'alertaTutorMsg', 'Por favor selecciona el tipo de tutor.');
+                return;
+            }
+            if (!/^\d{8}$/.test(nocontrol)) {
+                mostrarAlerta('alertaTutor', 'alertaTutorMsg', 'El número de control debe tener exactamente 8 dígitos numéricos.');
+                return;
+            }
+
+            if (tipo === 'maestro') {
+                mostrarAlerta('alertaTutor', 'alertaTutorMsg', 'El registro para maestros está en construcción.');
+                return;
+            }
+
+            setLoading('btnSubmitTutor', 'btnTutorTexto', 'btnTutorSpinner', true);
+
+            try {
+                // Verificar que el nocontrol existe en la BD antes de redirigir
+                const verificacion = await verificarNocontrol(nocontrol);
+                if (!verificacion.success) {
+                    mostrarAlerta('alertaTutor', 'alertaTutorMsg', 'El número de control no está registrado en el sistema. Verifica e intenta de nuevo.');
+                    return;
+                }
+
+                // Redirigir al formulario completo con el nocontrol verificado
                 window.location.href = 'registroAl_tutor.html?nocontrol=' + encodeURIComponent(nocontrol);
-            } else {
-                // Si es maestro, por ahora lo mandamos al index o a una vista pendiente
-                alert('El registro para maestros está en construcción.');
-                window.location.href = 'index.html';
+            } catch (error) {
+                console.error('Error:', error);
+                mostrarAlerta('alertaTutor', 'alertaTutorMsg', 'Error de conexión. Verifica tu red e intenta de nuevo.');
+            } finally {
+                setLoading('btnSubmitTutor', 'btnTutorTexto', 'btnTutorSpinner', false);
             }
         });
     </script>
 </body>
 
-</html>
+</html>

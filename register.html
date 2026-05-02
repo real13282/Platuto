@@ -245,9 +245,7 @@
             if (tipo === 'alumno') {
                 window.location.href = 'registroAl_tutor.html?nocontrol=' + encodeURIComponent(nocontrol);
             } else {
-                // Si es maestro, por ahora lo mandamos al index o a una vista pendiente
-                alert('El registro para maestros está en construcción.');
-                window.location.href = 'index.html';
+                window.location.href = 'registro_tutor.html?nocontrol=' + encodeURIComponent(nocontrol);
             }
         });
     </script>

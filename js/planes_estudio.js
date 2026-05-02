@@ -104,6 +104,14 @@ const planesEstudio = {
 
 document.addEventListener('DOMContentLoaded', async () => {
 
+    const carreraSelect = document.getElementById('carrera');
+    const semestreSelect = document.getElementById('semestre');
+    const materiasContainer = document.getElementById('materiasContainer');
+    const tutorForm = document.getElementById('tutorForm');
+
+    // Exit if not on a page that has these elements
+    if (!carreraSelect || !semestreSelect) return;
+
     // Populate carreras
     const carreras = Object.keys(planesEstudio).sort();
     carreras.forEach(carrera => {

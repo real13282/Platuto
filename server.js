@@ -3,31 +3,40 @@ const path = require('path');
 const fs = require('fs');
 const multer = require('multer');
 
-// Configuración de almacenamiento para Multer
-const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        if (file.fieldname === 'cv') {
-            cb(null, 'cv/');
-        } else if (file.fieldname === 'foto') {
-            cb(null, 'fotoPerfil/');
-        } else {
-            cb(new Error('Campo de archivo no reconocido'), false);
-        }
-    },
-    filename: function (req, file, cb) {
-        // Obtenemos el nocontrol del body
-        const nocontrol = req.body.nocontrol || 'default';
-        const ext = path.extname(file.originalname);
+// ─── Asegurar que existan las carpetas de archivos ───────────────────────────
+const fotoPerfilDir = path.join(__dirname, 'fotoPerfil');
+const cvDir = path.join(__dirname, 'cv');
+if (!fs.existsSync(fotoPerfilDir)) fs.mkdirSync(fotoPerfilDir, { recursive: true });
+if (!fs.existsSync(cvDir)) fs.mkdirSync(cvDir, { recursive: true });
 
-        if (file.fieldname === 'cv') {
-            cb(null, `cv${nocontrol}${ext}`);
-        } else if (file.fieldname === 'foto') {
-            cb(null, `fp${nocontrol}${ext}`);
-        }
+// ─── Configuración de Multer para tutor maestro ──────────────────────────────
+const storageTutorMaestro = multer.diskStorage({
+    destination: (req, file, cb) => {
+        if (file.fieldname === 'foto') cb(null, fotoPerfilDir);
+        else if (file.fieldname === 'cv') cb(null, cvDir);
+        else cb(new Error('Campo de archivo no reconocido'), null);
+    },
+    filename: (req, file, cb) => {
+        const nocontrol = req.body.nocontrol || 'sin_control';
+        const ext = path.extname(file.originalname);
+        if (file.fieldname === 'foto') cb(null, `pf${nocontrol}${ext}`);
+        else if (file.fieldname === 'cv') cb(null, `cv${nocontrol}.pdf`);
+        else cb(new Error('Campo de archivo no reconocido'), null);
     }
 });
-
-const upload = multer({ storage: storage });
+const uploadTutorMaestro = multer({
+    storage: storageTutorMaestro,
+    limits: { fileSize: 10 * 1024 * 1024 }, // 10 MB
+    fileFilter: (req, file, cb) => {
+        if (file.fieldname === 'foto' && !file.mimetype.startsWith('image/')) {
+            return cb(new Error('La foto debe ser una imagen válida'));
+        }
+        if (file.fieldname === 'cv' && file.mimetype !== 'application/pdf') {
+            return cb(new Error('El CV debe ser un archivo PDF'));
+        }
+        cb(null, true);
+    }
+});
 
 const knex = require('knex')({
     client: 'sqlite3',
@@ -51,6 +60,19 @@ async function setupDatabase() {
             }
         }
         console.log("✅ Tablas verificadas/creadas.");
+    }
+
+    // ── Migración incremental: agregar columnas nuevas si no existen ──────────
+    // SQLite no modifica tablas existentes con CREATE TABLE IF NOT EXISTS,
+    // por eso debemos hacer ALTER TABLE manualmente al arrancar.
+    try {
+        await knex.raw(`ALTER TABLE Maestro ADD COLUMN ultimoGrado_estudios TEXT`);
+        console.log("✅ Columna ultimoGrado_estudios agregada a Maestro.");
+    } catch (err) {
+        if (!err.message.includes('duplicate column name')) {
+            console.error("❌ Error migrando columna:", err.message);
+        }
+        // Si ya existe, ignorar el error silenciosamente
     }
 
     // Insertar Semilla si la tabla alumnos está vacía (V2__seed.sql)
@@ -155,17 +177,9 @@ app.post('/api/register/asesorado', async (req, res) => {
     }
 });
 
-app.post('/api/register/tutor', upload.fields([{ name: 'foto', maxCount: 1 }, { name: 'cv', maxCount: 1 }]), async (req, res) => {
+app.post('/api/register/tutor', async (req, res) => {
     try {
-        let { nocontrol, nombre, correo, telefono, carrera, semestre, materias } = req.body;
-
-        if (typeof materias === 'string') {
-            try {
-                materias = JSON.parse(materias);
-            } catch (error) {
-                console.error("Error al parsear materias:", error);
-            }
-        }
+        const { nocontrol, nombre, correo, telefono, carrera, semestre, materias } = req.body;
 
         if (!nocontrol || !materias || materias.length === 0) {
             return res.status(400).json({ success: false, message: 'Faltan datos obligatorios' });
@@ -184,25 +198,17 @@ app.post('/api/register/tutor', upload.fields([{ name: 'foto', maxCount: 1 }, { 
 
         // Registrar o actualizar en Tutores
         const tutor = await knex('Tutores').where({ idalumnos: alumno.idalumnos }).first();
-        const materiasStr = Array.isArray(materias) ? materias.join(',') : materias;
-
-        const url_cv = req.files && req.files['cv'] ? req.files['cv'][0].path.replace(/\\/g, '/') : (tutor ? tutor.url_cv : '');
-        const url_foto_perfil = req.files && req.files['foto'] ? req.files['foto'][0].path.replace(/\\/g, '/') : (tutor ? tutor.url_foto_perfil : '');
+        const materiasStr = materias.join(',');
 
         if (tutor) {
             await knex('Tutores')
                 .where({ idalumnos: alumno.idalumnos })
-                .update({
-                    materias: materiasStr,
-                    url_cv: url_cv,
-                    url_foto_perfil: url_foto_perfil
-                });
+                .update({ materias: materiasStr });
         } else {
             await knex('Tutores').insert({
                 idalumnos: alumno.idalumnos,
                 materias: materiasStr,
-                url_cv: url_cv,
-                url_foto_perfil: url_foto_perfil
+                url_cv: ''
             });
         }
 
@@ -212,6 +218,99 @@ app.post('/api/register/tutor', upload.fields([{ name: 'foto', maxCount: 1 }, { 
         res.status(500).json({ success: false, message: 'Error interno en el servidor' });
     }
 });
+
+// ─── GET: Datos de maestro para prefill ──────────────────────────────────────
+app.get('/api/maestro/:nocontrol', async (req, res) => {
+    try {
+        const { nocontrol } = req.params;
+        const maestro = await knex('Maestro')
+            .where({ nocontrol: nocontrol })
+            .select('nocontrol', 'nombre', 'apellidopat', 'apellidomat', 'correo', 'telefono', 'ultimoGrado_estudios')
+            .first();
+
+        if (!maestro) {
+            return res.status(404).json({ success: false, message: 'Maestro no encontrado en el sistema' });
+        }
+
+        const nombreCompleto = [maestro.apellidopat, maestro.apellidomat, maestro.nombre]
+            .filter(Boolean).join(' ');
+
+        res.json({
+            success: true,
+            data: {
+                nocontrol: maestro.nocontrol,
+                nombre: nombreCompleto,
+                correo: maestro.correo,
+                telefono: maestro.telefono,
+                gradoEstudio: maestro.ultimoGrado_estudios
+            }
+        });
+    } catch (error) {
+        console.error("Error al buscar maestro:", error);
+        res.status(500).json({ success: false, message: 'Error interno en el servidor' });
+    }
+});
+
+// ─── POST: Registro de Tutor Maestro ─────────────────────────────────────────
+app.post('/api/register/tutor_maestro',
+    uploadTutorMaestro.fields([{ name: 'foto', maxCount: 1 }, { name: 'cv', maxCount: 1 }]),
+    async (req, res) => {
+        try {
+            const { nocontrol, telefono, grado_estudio, materias } = req.body;
+
+            if (!nocontrol || !materias || materias.length === 0) {
+                return res.status(400).json({ success: false, message: 'Faltan datos obligatorios (nocontrol o materias)' });
+            }
+
+            // Buscar maestro
+            const maestro = await knex('Maestro').where({ nocontrol }).first();
+            if (!maestro) {
+                return res.status(404).json({ success: false, message: 'El número de control no existe en nuestros registros' });
+            }
+
+            // Verificar si ya está registrado como tutor
+            const tutorExistente = await knex('Tutores').where({ idmaestro: maestro.idmaestro }).first();
+            if (tutorExistente) {
+                return res.status(409).json({ success: false, message: 'Este maestro ya está registrado como tutor' });
+            }
+
+            // Rutas de archivos guardados por multer
+            const urlFoto = req.files && req.files['foto']
+                ? `fotoPerfil/${req.files['foto'][0].filename}`
+                : null;
+            const urlCv = req.files && req.files['cv']
+                ? `cv/${req.files['cv'][0].filename}`
+                : null;
+
+            // Parsear materias (viene como JSON string desde el frontend)
+            let materiasArr = [];
+            try {
+                materiasArr = JSON.parse(materias);
+            } catch { materiasArr = Array.isArray(materias) ? materias : [materias]; }
+            const materiasStr = materiasArr.join(',');
+
+            // Actualizar datos del maestro
+            await knex('Maestro').where({ idmaestro: maestro.idmaestro }).update({
+                telefono: telefono || maestro.telefono,
+                ultimoGrado_estudios: grado_estudio || maestro.ultimoGrado_estudios
+            });
+
+            // Insertar en Tutores
+            await knex('Tutores').insert({
+                idmaestro: maestro.idmaestro,
+                idalumnos: null,
+                materias: materiasStr,
+                url_foto_perfil: urlFoto,
+                url_cv: urlCv
+            });
+
+            res.json({ success: true, message: 'Registro de tutor maestro exitoso' });
+        } catch (error) {
+            console.error("Error en registro de tutor maestro:", error);
+            res.status(500).json({ success: false, message: 'Error interno en el servidor' });
+        }
+    }
+);
 
 app.get('/api/alumnos/:nocontrol', async (req, res) => {
     try {
@@ -242,7 +341,12 @@ app.get('/api/planes-estudio', async (req, res) => {
         const planesEstudio = {};
 
         materias.forEach(row => {
+            // Unify case based on frontend expectations if necessary, 
+            // but Licenciaturas table has exact string values we can use.
             const carrera = row.carrera.toLowerCase() === 'arquitectura' ? 'Licenciatura en arquitectura' : row.carrera;
+            // The JSON had "Licenciatura en administración", "Licenciatura en arquitectura", etc.
+            // Let's standardize the keys dynamically by capitalizing only the first letter.
+            // Actually, just sending the name from DB is fine, the frontend uses Object.keys(data).
 
             if (!planesEstudio[carrera]) {
                 planesEstudio[carrera] = {};

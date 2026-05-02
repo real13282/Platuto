@@ -37,7 +37,7 @@
                         <div class="row">
                             <div
                                 class="col-lg-6 d-none d-lg-flex align-items-center justify-content-center bg-white p-5">
-                                <img src="img/Loge.png" alt="Logo"
+                                <img src="img/loguu.jpg" alt="Logo"
                                     style="width: 85%; height: auto; object-fit: contain;">
                             </div>
                             <div class="col-lg-6">
@@ -48,13 +48,23 @@
                                     </div>
                                     <form class="user" id="loginForm">
                                         <div class="form-group d-flex justify-content-center align-items-center mb-4">
-                                            <div class="custom-control custom-radio mx-3" style="transform: scale(1.2);">
-                                                <input type="radio" id="roleAsesorado" name="userRole" class="custom-control-input" value="asesorado" required oninvalid="this.setCustomValidity('Por favor selecciona un rol (Asesorado o Tutor)')" oninput="this.setCustomValidity('')">
-                                                <label class="custom-control-label text-dark" for="roleAsesorado" style="font-size: 1.1rem;">Asesorado</label>
+                                            <div class="custom-control custom-radio mx-3"
+                                                style="transform: scale(1.2);">
+                                                <input type="radio" id="roleAsesorado" name="userRole"
+                                                    class="custom-control-input" value="asesorado" required
+                                                    oninvalid="this.setCustomValidity('Por favor selecciona un rol (Asesorado o Tutor)')"
+                                                    oninput="this.setCustomValidity('')">
+                                                <label class="custom-control-label text-dark" for="roleAsesorado"
+                                                    style="font-size: 1.1rem;">Asesorado</label>
                                             </div>
-                                            <div class="custom-control custom-radio mx-3" style="transform: scale(1.2);">
-                                                <input type="radio" id="roleTutor" name="userRole" class="custom-control-input" value="tutor" required oninvalid="this.setCustomValidity('Por favor selecciona un rol (Asesorado o Tutor)')" oninput="this.setCustomValidity('')">
-                                                <label class="custom-control-label text-dark" for="roleTutor" style="font-size: 1.1rem;">Tutor</label>
+                                            <div class="custom-control custom-radio mx-3"
+                                                style="transform: scale(1.2);">
+                                                <input type="radio" id="roleTutor" name="userRole"
+                                                    class="custom-control-input" value="tutor" required
+                                                    oninvalid="this.setCustomValidity('Por favor selecciona un rol (Asesorado o Tutor)')"
+                                                    oninput="this.setCustomValidity('')">
+                                                <label class="custom-control-label text-dark" for="roleTutor"
+                                                    style="font-size: 1.1rem;">Tutor</label>
                                             </div>
                                         </div>
                                         <div class="form-group">
@@ -106,7 +116,7 @@
 
     <!-- Login Logic -->
     <script>
-        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+        document.getElementById('loginForm').addEventListener('submit', async function (e) {
             e.preventDefault(); // Evitar la redirección directa por el formulario
 
             const nocontrol = document.getElementById('numeroControl').value;

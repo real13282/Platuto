@@ -9,8 +9,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // ── 1. Cargar planes de estudio desde la base de datos ──────────────────
     try {
-        carreraSelect.disabled = true;
-        carreraSelect.innerHTML = '<option value="" disabled selected>Cargando carreras...</option>';
+        if (carreraSelect) {
+            carreraSelect.disabled = true;
+            carreraSelect.innerHTML = '<option value="" disabled selected>Cargando carreras...</option>';
+        }
 
         const res = await fetch('/api/planes-estudio');
         const result = await res.json();
@@ -20,8 +22,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         planesEstudio = result.data;
     } catch (err) {
         console.error('Error cargando planes de estudio:', err);
-        carreraSelect.innerHTML = '<option value="" disabled selected>Error al cargar carreras</option>';
+        if (carreraSelect) {
+            carreraSelect.innerHTML = '<option value="" disabled selected>Error al cargar carreras</option>';
+        }
         return; // Detener ejecución si no se pudo cargar
+    }
+
+    if (!carreraSelect || !semestreSelect || !materiasContainer || !tutorForm) {
+        // No estamos en la página de registroAl_tutor.html, salimos para no crashear
+        return;
     }
 
     // ── 2. Popular el select de carreras ────────────────────────────────────

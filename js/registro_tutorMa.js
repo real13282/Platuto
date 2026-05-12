@@ -1,11 +1,13 @@
 document.addEventListener('DOMContentLoaded', async () => {
-    const carrerasContainer = document.getElementById('carrerasContainer');
+    const carreraSelect = document.getElementById('carreraSelect');
     const semestresContainer = document.getElementById('semestresContainer');
     const materiasContainer = document.getElementById('materiasContainer');
+    const materiasSeleccionadasContainer = document.getElementById('materiasSeleccionadasContainer');
+    const noMateriasMsg = document.getElementById('noMateriasMsg');
     const tutorForm = document.getElementById('tutorForm');
 
     // Make sure we are on the maestro tutor page
-    if (!carrerasContainer || !semestresContainer || !materiasContainer) return;
+    if (!carreraSelect || !semestresContainer || !materiasContainer) return;
 
     let planesEstudioLocal = {};
     try {
@@ -24,24 +26,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Populate Carreras
     const carreras = Object.keys(planesEstudioLocal).sort();
-    carreras.forEach((carrera, index) => {
-        const div = document.createElement('div');
-        div.className = 'custom-control custom-checkbox mb-2';
-
-        const input = document.createElement('input');
-        input.type = 'checkbox';
-        input.className = 'custom-control-input carrera-checkbox';
-        input.id = `carrera_${index}`;
-        input.value = carrera;
-
-        const label = document.createElement('label');
-        label.className = 'custom-control-label text-dark';
-        label.htmlFor = `carrera_${index}`;
-        label.textContent = carrera;
-
-        div.appendChild(input);
-        div.appendChild(label);
-        carrerasContainer.appendChild(div);
+    carreras.forEach((carrera) => {
+        const option = document.createElement('option');
+        option.value = carrera;
+        option.textContent = carrera;
+        carreraSelect.appendChild(option);
     });
 
     // Prefill de datos del maestro desde la URL y el API
@@ -68,23 +57,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // Handle Carrera selection change to populate Semestres
-    carrerasContainer.addEventListener('change', updateSemestres);
+    carreraSelect.addEventListener('change', updateSemestres);
 
     function updateSemestres() {
-        const selectedCarreras = Array.from(document.querySelectorAll('.carrera-checkbox:checked')).map(cb => cb.value);
+        const selectedCarrera = carreraSelect.value;
         
-        if (selectedCarreras.length === 0) {
+        if (!selectedCarrera) {
             semestresContainer.innerHTML = '<p class="text-muted text-center mt-3">Selecciona al menos una licenciatura...</p>';
             materiasContainer.innerHTML = '<p class="text-muted text-center mt-3">Selecciona licenciaturas y semestres para ver materias disponibles...</p>';
             return;
         }
 
-        // Get max semester across selected carreras
-        let maxSemestres = 0;
-        selectedCarreras.forEach(carrera => {
-            const num = Object.keys(planesEstudioLocal[carrera]).length;
-            if (num > maxSemestres) maxSemestres = num;
-        });
+        const maxSemestres = Object.keys(planesEstudioLocal[selectedCarrera]).length;
 
         // Remember previously selected semestres
         const previouslySelected = Array.from(document.querySelectorAll('.semestre-checkbox:checked')).map(cb => cb.value);
@@ -122,26 +106,27 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function updateMaterias() {
-        const selectedCarreras = Array.from(document.querySelectorAll('.carrera-checkbox:checked')).map(cb => cb.value);
+        const selectedCarrera = carreraSelect.value;
         const selectedSemestres = Array.from(document.querySelectorAll('.semestre-checkbox:checked')).map(cb => cb.value);
 
-        if (selectedCarreras.length === 0 || selectedSemestres.length === 0) {
+        if (!selectedCarrera || selectedSemestres.length === 0) {
             materiasContainer.innerHTML = '<p class="text-muted text-center mt-3">Selecciona licenciaturas y semestres para ver materias disponibles...</p>';
             return;
         }
 
         let availableSubjects = new Set();
-        selectedCarreras.forEach(carrera => {
-            selectedSemestres.forEach(semestre => {
-                if (planesEstudioLocal[carrera][semestre]) {
-                    planesEstudioLocal[carrera][semestre].forEach(materia => {
-                        availableSubjects.add(`${materia} (${carrera})`);
-                    });
-                }
-            });
+        selectedSemestres.forEach(semestre => {
+            if (planesEstudioLocal[selectedCarrera][semestre]) {
+                planesEstudioLocal[selectedCarrera][semestre].forEach(materia => {
+                    availableSubjects.add(`${materia} (${selectedCarrera})`);
+                });
+            }
         });
 
         const sortedSubjects = Array.from(availableSubjects).sort();
+        
+        // Preserve selected materias
+        const currentlySelectedMaterias = Array.from(document.querySelectorAll('.subject-checkbox:checked')).map(cb => cb.value);
 
         materiasContainer.innerHTML = '';
         if (sortedSubjects.length > 0) {
@@ -154,6 +139,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                 input.className = 'custom-control-input subject-checkbox';
                 input.id = `materia_${index}`;
                 input.value = materia;
+                if (currentlySelectedMaterias.includes(materia)) {
+                    input.checked = true;
+                }
+
+                input.addEventListener('change', renderMateriasSeleccionadas);
 
                 const label = document.createElement('label');
                 label.className = 'custom-control-label text-dark';
@@ -167,14 +157,31 @@ document.addEventListener('DOMContentLoaded', async () => {
         } else {
             materiasContainer.innerHTML = '<p class="text-muted text-center mt-3">No hay materias disponibles para estas selecciones.</p>';
         }
+        renderMateriasSeleccionadas();
+    }
+    
+    function renderMateriasSeleccionadas() {
+        if (!materiasSeleccionadasContainer) return;
+        const selectedMaterias = Array.from(document.querySelectorAll('.subject-checkbox:checked')).map(cb => cb.value);
+        materiasSeleccionadasContainer.innerHTML = '';
+        if (selectedMaterias.length > 0) {
+            selectedMaterias.forEach(mat => {
+                const badge = document.createElement('span');
+                badge.className = 'badge badge-primary p-2 mr-1 mb-1';
+                badge.textContent = mat;
+                materiasSeleccionadasContainer.appendChild(badge);
+            });
+        } else {
+            materiasSeleccionadasContainer.innerHTML = '<p class="text-muted w-100 text-center mt-3" id="noMateriasMsg">Aún no has seleccionado materias.</p>';
+        }
     }
 
     // Handle Form Submission
     tutorForm.addEventListener('submit', async (e) => {
         e.preventDefault();
 
-        const selectedCarreras = Array.from(document.querySelectorAll('.carrera-checkbox:checked'));
-        if (selectedCarreras.length === 0) {
+        const selectedCarrera = carreraSelect.value;
+        if (!selectedCarrera) {
             alert('Por favor, selecciona al menos una licenciatura.');
             return;
         }
@@ -211,7 +218,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         formData.append('telefono', document.getElementById('telefono').value);
         formData.append('grado_estudio', document.getElementById('gradoEstudio').value);
         
-        formData.append('carreras', JSON.stringify(selectedCarreras.map(cb => cb.value)));
+        formData.append('carreras', JSON.stringify([selectedCarrera]));
         formData.append('semestres', JSON.stringify(selectedSemestres.map(cb => cb.value)));
         formData.append('materias', JSON.stringify(Array.from(selectedMaterias).map(cb => cb.value)));
 
@@ -238,9 +245,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         } catch (error) {
             console.error('Error al registrar tutor maestro:', error);
-            // Simulate success if API doesn't exist yet
-            alert('Registro simulado con éxito (El endpoint puede no existir).');
-            window.location.href = 'login.html';
+            alert('Error de conexión o el endpoint de registro no respondió.');
         }
     });
 });

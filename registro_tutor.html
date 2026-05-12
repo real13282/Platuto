@@ -38,7 +38,7 @@
             border-color: #007373;
             color: white;
         }
-        
+
         .custom-file-upload {
             border: 2px dashed #008B8B;
             border-radius: 10px;
@@ -55,13 +55,13 @@
             justify-content: center;
             min-height: 120px;
         }
-        
+
         .custom-file-upload:hover {
             background-color: #eaecf4;
             border-color: #006666;
             transform: scale(1.02);
         }
-        
+
         .custom-file-upload input[type="file"] {
             position: absolute;
             left: 0;
@@ -71,19 +71,19 @@
             height: 100%;
             cursor: pointer;
         }
-        
+
         .custom-file-upload i {
             font-size: 2.5rem;
             color: #008B8B;
             margin-bottom: 10px;
         }
-        
+
         .checklist-container {
-            border-radius: 1rem; 
-            min-height: 180px; 
-            max-height: 250px; 
-            overflow-y: auto; 
-            padding: 15px; 
+            border-radius: 1rem;
+            min-height: 180px;
+            max-height: 250px;
+            overflow-y: auto;
+            padding: 15px;
             border: 1px solid #d1d3e2;
             background-color: #fff;
             height: auto;
@@ -104,7 +104,8 @@
                                     <div class="text-center">
                                         <h1 class="h4 text-gray-900 mb-4 font-weight-bold">Registro de Tutor (Maestro)
                                         </h1>
-                                        <p class="mb-4">Completa el siguiente formulario para darte de alta como tutor maestro
+                                        <p class="mb-4">Completa el siguiente formulario para darte de alta como tutor
+                                            maestro
                                             en Platuto</p>
                                     </div>
                                     <form class="user" id="tutorForm">
@@ -143,12 +144,15 @@
                                                     oninput="this.setCustomValidity('')">
                                             </div>
                                         </div>
-                                        
+
                                         <div class="form-group row">
                                             <div class="col-sm-12">
-                                                <label for="gradoEstudio" class="ml-2 font-weight-bold">Último Grado de Estudio</label>
-                                                <input type="text" class="form-control form-control-user" id="gradoEstudio"
-                                                    placeholder="Ej. Licenciatura en..., Maestría en..." required>
+                                                <label for="gradoEstudio" class="ml-2 font-weight-bold">Último Grado de
+                                                    Estudio</label>
+                                                <input type="text" class="form-control form-control-user"
+                                                    id="gradoEstudio"
+                                                    placeholder="Ej. Licenciatura en..., Maestría en..." readonly
+                                                    disabled>
                                             </div>
                                         </div>
 
@@ -157,18 +161,24 @@
                                                 <label class="ml-2 font-weight-bold">Foto de Perfil</label>
                                                 <div class="custom-file-upload">
                                                     <i class="fas fa-camera"></i>
-                                                    <p class="mb-0 text-muted font-weight-bold" id="fotoLabel">Sube tu foto</p>
-                                                    <small class="text-xs text-gray-500 text-center mt-1">Formatos: JPG, PNG</small>
-                                                    <input type="file" id="foto" accept="image/*" required onchange="document.getElementById('fotoLabel').innerText = this.files[0] ? this.files[0].name : 'Sube tu foto'; document.getElementById('fotoLabel').classList.remove('text-muted'); document.getElementById('fotoLabel').classList.add('text-primary');">
+                                                    <p class="mb-0 text-muted font-weight-bold" id="fotoLabel">Sube tu
+                                                        foto</p>
+                                                    <small class="text-xs text-gray-500 text-center mt-1">Formatos: JPG,
+                                                        PNG</small>
+                                                    <input type="file" id="foto" accept="image/*" required
+                                                        onchange="document.getElementById('fotoLabel').innerText = this.files[0] ? this.files[0].name : 'Sube tu foto'; document.getElementById('fotoLabel').classList.remove('text-muted'); document.getElementById('fotoLabel').classList.add('text-primary');">
                                                 </div>
                                             </div>
                                             <div class="col-sm-6">
                                                 <label class="ml-2 font-weight-bold">Currículum Vitae</label>
                                                 <div class="custom-file-upload">
                                                     <i class="fas fa-file-pdf"></i>
-                                                    <p class="mb-0 text-muted font-weight-bold" id="cvLabel">Sube tu CV</p>
-                                                    <small class="text-xs text-gray-500 text-center mt-1">Formato: PDF (Máx 10MB)</small>
-                                                    <input type="file" id="cv" accept=".pdf" required onchange="document.getElementById('cvLabel').innerText = this.files[0] ? this.files[0].name : 'Sube tu CV'; document.getElementById('cvLabel').classList.remove('text-muted'); document.getElementById('cvLabel').classList.add('text-primary');">
+                                                    <p class="mb-0 text-muted font-weight-bold" id="cvLabel">Sube tu CV
+                                                    </p>
+                                                    <small class="text-xs text-gray-500 text-center mt-1">Formato: PDF
+                                                        (Máx 10MB)</small>
+                                                    <input type="file" id="cv" accept=".pdf" required
+                                                        onchange="document.getElementById('cvLabel').innerText = this.files[0] ? this.files[0].name : 'Sube tu CV'; document.getElementById('cvLabel').classList.remove('text-muted'); document.getElementById('cvLabel').classList.add('text-primary');">
                                                 </div>
                                             </div>
                                         </div>
@@ -177,38 +187,52 @@
                                             Información Académica</h5>
 
                                         <div class="form-group row">
-                                            <div class="col-sm-6 mb-3 mb-sm-0">
-                                                <label class="ml-2 font-weight-bold">Licenciaturas (Selecciona al menos una)</label>
-                                                <div class="checklist-container form-control" id="carrerasContainer">
-                                                    <!-- Carreras checkboxes -->
+                                            <div class="form-group row">
+                                                <div class="col-sm-4 mb-3 mb-sm-0">
+                                                    <label class="ml-2 font-weight-bold">Licenciatura</label>
+                                                    <select class="form-control rounded-pill" id="carreraSelect">
+                                                        <option value="">Selecciona una licenciatura...</option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-sm-6">
+                                                    <label class="ml-2 font-weight-bold">Semestres (Selecciona al menos
+                                                        uno)</label>
+                                                    <div class="checklist-container form-control"
+                                                        id="semestresContainer">
+                                                        <p class="text-muted text-center mt-3">Selecciona al menos una
+                                                            licenciatura...</p>
+                                                    </div>
                                                 </div>
                                             </div>
-                                            <div class="col-sm-6">
-                                                <label class="ml-2 font-weight-bold">Semestres (Selecciona al menos uno)</label>
-                                                <div class="checklist-container form-control" id="semestresContainer">
-                                                    <p class="text-muted text-center mt-3">Selecciona al menos una licenciatura...</p>
+
+                                            <div class="form-group mt-4">
+                                                <label class="ml-2 font-weight-bold">Materias con oferta de tutoría
+                                                    (Selecciona al menos una)</label>
+                                                <div class="checklist-container form-control" id="materiasContainer">
+                                                    <p class="text-muted text-center mt-3">Selecciona licenciaturas y
+                                                        semestres para ver materias disponibles...</p>
                                                 </div>
                                             </div>
-                                        </div>
-
-                                        <div class="form-group mt-4">
-                                            <label class="ml-2 font-weight-bold">Materias con oferta de tutoría (Selecciona al menos una)</label>
-                                            <div class="checklist-container form-control" id="materiasContainer">
-                                                <p class="text-muted text-center mt-3">Selecciona licenciaturas y semestres para ver materias disponibles...</p>
+                                            <div class="form-group mt-4">
+                                                <label class="ml-2 font-weight-bold">Materias Seleccionadas</label>
+                                                <div class="form-control" id="materiasSeleccionadasContainer"
+                                                    style="height: auto; min-height: 120px; display: flex; flex-wrap: wrap; align-content: flex-start; gap: 8px; padding: 15px; border-radius: 1rem; background-color: #fff;">
+                                                    <p class="text-muted w-100 text-center mt-3" id="noMateriasMsg">Aún
+                                                        no has seleccionado materias.</p>
+                                                </div>
                                             </div>
-                                        </div>
 
-                                        <button type="submit"
-                                            class="btn btn-platuto btn-user btn-block mt-5 font-weight-bold"
-                                            style="font-size: 1.2rem;">
-                                            Registrarme como Tutor
-                                        </button>
+                                            <button type="submit"
+                                                class="btn btn-platuto btn-user btn-block mt-5 font-weight-bold"
+                                                style="font-size: 1.2rem;">
+                                                Registrarme como Tutor
+                                            </button>
 
-                                        <hr>
-                                        <div class="text-center">
-                                            <a class="small text-platuto" href="index.html">Cancelar y volver al
-                                                inicio</a>
-                                        </div>
+                                            <hr>
+                                            <div class="text-center">
+                                                <a class="small text-platuto" href="index.html">Cancelar y volver al
+                                                    inicio</a>
+                                            </div>
                                     </form>
                                 </div>
                             </div>

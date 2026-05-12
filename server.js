@@ -149,7 +149,7 @@ app.post('/api/login', async (req, res) => {
 
 app.post('/api/register/asesorado', async (req, res) => {
     try {
-        const { nocontrol } = req.body;
+        const { nocontrol, telefono, materia_interes } = req.body;
 
         if (!nocontrol) {
             return res.status(400).json({ success: false, message: 'Falta el número de control' });
@@ -160,13 +160,23 @@ app.post('/api/register/asesorado', async (req, res) => {
         if (!alumno) {
             return res.status(404).json({ success: false, message: 'El número de control no existe en nuestros registros' });
         }
+        
+        // Actualizar teléfono si fue proporcionado
+        if (telefono) {
+            await knex('Alumnos').where({ idalumnos: alumno.idalumnos }).update({ telefono });
+        }
 
         // Verificar si ya está como asesorado
         const asesorado = await knex('Asesorados').where({ idalumnos: alumno.idalumnos }).first();
         if (!asesorado) {
             await knex('Asesorados').insert({
                 idalumnos: alumno.idalumnos,
-                materias: ''
+                materias: materia_interes || ''
+            });
+        } else if (materia_interes) {
+            // Si ya existe y hay una nueva materia, podrías anexarla o reemplazarla. Lo reemplazamos por simplicidad.
+            await knex('Asesorados').where({ idalumnos: alumno.idalumnos }).update({
+                materias: materia_interes
             });
         }
 

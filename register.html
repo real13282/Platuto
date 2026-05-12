@@ -201,7 +201,6 @@
             </div>
         </div>
     </div>
-
     <!-- Bootstrap core JavaScript-->
     <script src="vendor/jquery/jquery.min.js"></script>
     <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
@@ -216,24 +215,27 @@
         document.getElementById('formRegistroAsesorado').addEventListener('submit', async function (e) {
             e.preventDefault();
             const nocontrol = document.getElementById('numeroControlAsesorado').value;
+            const btn = this.querySelector('button[type="submit"]');
+
+            btn.disabled = true;
+            btn.textContent = 'Verificando...';
 
             try {
-                const response = await fetch('/api/register/asesorado', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ nocontrol })
-                });
+                const response = await fetch('/api/alumnos/' + encodeURIComponent(nocontrol));
                 const result = await response.json();
 
-                if (result.success) {
-                    alert('Registro de asesorado exitoso. Puedes iniciar sesión.');
-                    window.location.href = 'login.html';
+                if (result.success && result.data) {
+                    window.location.href = 'registro_asesorado.html?nocontrol=' + encodeURIComponent(nocontrol);
                 } else {
-                    alert(result.message);
+                    alert('Número de control no encontrado en el sistema. Verifica tu información.');
+                    btn.disabled = false;
+                    btn.textContent = 'Enviar';
                 }
             } catch (error) {
                 console.error('Error:', error);
-                alert('Ocurrió un error al registrar el asesorado.');
+                alert('Ocurrió un error al verificar el asesorado.');
+                btn.disabled = false;
+                btn.textContent = 'Enviar';
             }
         });
 
@@ -241,7 +243,7 @@
             e.preventDefault();
             const tipo = document.getElementById('tipoTutor').value;
             const nocontrol = document.getElementById('numeroControlTutor').value;
-            const btn = e.submitter;
+            const btn = this.querySelector('button[type="submit"]');
 
             btn.disabled = true;
             btn.textContent = 'Verificando...';

@@ -1,5 +1,6 @@
 // planesEstudio se carga dinámicamente desde la base de datos vía /api/planes-estudio
 let planesEstudio = {};
+let materiasSeleccionadas = new Set();
 
 document.addEventListener('DOMContentLoaded', async () => {
     const carreraSelect = document.getElementById('carrera');
@@ -193,6 +194,16 @@ document.addEventListener('DOMContentLoaded', async () => {
                     input.id = `materia_${i}_${index}`;
                     input.value = materia;
                     input.name = 'materias';
+                    input.checked = materiasSeleccionadas.has(materia);
+
+                    input.addEventListener('change', function(e) {
+                        if (this.checked) {
+                            materiasSeleccionadas.add(this.value);
+                        } else {
+                            materiasSeleccionadas.delete(this.value);
+                        }
+                        renderSelectedMaterias();
+                    });
 
                     const label = document.createElement('label');
                     label.className = 'custom-control-label text-dark';
@@ -215,13 +226,59 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
+    function renderSelectedMaterias() {
+        const container = document.getElementById('materiasSeleccionadasContainer');
+        if (!container) return;
+
+        container.innerHTML = '';
+
+        if (materiasSeleccionadas.size === 0) {
+            container.innerHTML = '<p class="text-muted w-100 text-center mt-3" id="noMateriasMsg">Aún no has seleccionado materias.</p>';
+            return;
+        }
+
+        materiasSeleccionadas.forEach(mat => {
+            const tag = document.createElement('span');
+            tag.className = 'badge d-flex align-items-center p-2 text-white';
+            tag.style.backgroundColor = '#008B8B';
+            tag.style.fontSize = '0.9rem';
+            tag.style.borderRadius = '0.5rem';
+
+            const text = document.createElement('span');
+            text.textContent = mat;
+            text.className = 'mr-2';
+
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'close text-white ml-2';
+            btn.innerHTML = '&times;';
+            btn.style.fontSize = '1.2rem';
+            btn.style.lineHeight = '0.5';
+            btn.style.outline = 'none';
+
+            btn.onclick = () => {
+                materiasSeleccionadas.delete(mat);
+                renderSelectedMaterias();
+
+                // Desmarcar checkbox si existe en el DOM
+                const checkboxes = document.querySelectorAll('.subject-checkbox');
+                checkboxes.forEach(cb => {
+                    if (cb.value === mat) cb.checked = false;
+                });
+            };
+
+            tag.appendChild(text);
+            tag.appendChild(btn);
+            container.appendChild(tag);
+        });
+    }
+
     // ── 6. Envío del formulario ─────────────────────────────────────────────
     tutorForm.addEventListener('submit', async (e) => {
         e.preventDefault();
 
         // Basic check if materias are selected
-        const selectedCheckboxes = document.querySelectorAll('.subject-checkbox:checked');
-        if (selectedCheckboxes.length === 0) {
+        if (materiasSeleccionadas.size === 0) {
             alert('Por favor, selecciona al menos una materia para impartir tutoría.');
             return;
         }
@@ -254,7 +311,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         formData.append('telefono', document.getElementById('telefono').value);
         formData.append('carrera', document.getElementById('carrera').value);
         formData.append('semestre', document.getElementById('semestre').value);
-        formData.append('materias', JSON.stringify(Array.from(selectedCheckboxes).map(cb => cb.value)));
+        formData.append('materias', JSON.stringify(Array.from(materiasSeleccionadas)));
 
         if (document.getElementById('foto').files[0]) {
             formData.append('foto', document.getElementById('foto').files[0]);

@@ -1,0 +1,8 @@
+{
+    "default": {
+        "formatOptions": {
+            "snippetInterface": "synchronous"
+        },
+        "format": ["@cucumber/pretty-formatter"]
+    }
+}

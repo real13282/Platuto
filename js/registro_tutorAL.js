@@ -1,6 +1,6 @@
 // planesEstudio se carga dinámicamente desde la base de datos vía /api/planes-estudio
 let planesEstudio = {};
-let materiasSeleccionadas = new Set();
+let materiasSeleccionadas = new Map();
 
 document.addEventListener('DOMContentLoaded', async () => {
     const carreraSelect = document.getElementById('carrera');
@@ -140,10 +140,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (semestresObj[i] && semestresObj[i].length > 0) {
                 // Filter out already seen subjects to prevent duplicates across semesters
                 const materiasDeSemestre = semestresObj[i].filter(m => {
-                    if (seenSubjects.has(m)) return false;
-                    seenSubjects.add(m);
+                    if (seenSubjects.has(m.clave)) return false;
+                    seenSubjects.add(m.clave);
                     return true;
-                }).sort();
+                }).sort((a, b) => a.nombre.localeCompare(b.nombre));
 
                 if (materiasDeSemestre.length === 0) continue;
                 
@@ -184,7 +184,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     icon.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';
                 });
 
-                materiasDeSemestre.forEach((materia, index) => {
+                materiasDeSemestre.forEach((materiaObj, index) => {
                     const li = document.createElement('li');
                     li.className = 'custom-control custom-checkbox mb-2';
 
@@ -192,15 +192,15 @@ document.addEventListener('DOMContentLoaded', async () => {
                     input.type = 'checkbox';
                     input.className = 'custom-control-input subject-checkbox';
                     input.id = `materia_${i}_${index}`;
-                    input.value = materia;
+                    input.value = materiaObj.clave;
                     input.name = 'materias';
-                    input.checked = materiasSeleccionadas.has(materia);
+                    input.checked = materiasSeleccionadas.has(materiaObj.clave);
 
                     input.addEventListener('change', function(e) {
                         if (this.checked) {
-                            materiasSeleccionadas.add(this.value);
+                            materiasSeleccionadas.set(materiaObj.clave, materiaObj.nombre);
                         } else {
-                            materiasSeleccionadas.delete(this.value);
+                            materiasSeleccionadas.delete(materiaObj.clave);
                         }
                         renderSelectedMaterias();
                     });
@@ -208,7 +208,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     const label = document.createElement('label');
                     label.className = 'custom-control-label text-dark';
                     label.htmlFor = `materia_${i}_${index}`;
-                    label.textContent = materia;
+                    label.textContent = materiaObj.nombre;
 
                     li.appendChild(input);
                     li.appendChild(label);
@@ -237,7 +237,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             return;
         }
 
-        materiasSeleccionadas.forEach(mat => {
+        materiasSeleccionadas.forEach((nombre, clave) => {
             const tag = document.createElement('span');
             tag.className = 'badge d-flex align-items-center p-2 text-white';
             tag.style.backgroundColor = '#008B8B';
@@ -245,7 +245,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             tag.style.borderRadius = '0.5rem';
 
             const text = document.createElement('span');
-            text.textContent = mat;
+            text.textContent = nombre;
             text.className = 'mr-2';
 
             const btn = document.createElement('button');
@@ -257,13 +257,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             btn.style.outline = 'none';
 
             btn.onclick = () => {
-                materiasSeleccionadas.delete(mat);
+                materiasSeleccionadas.delete(clave);
                 renderSelectedMaterias();
 
                 // Desmarcar checkbox si existe en el DOM
                 const checkboxes = document.querySelectorAll('.subject-checkbox');
                 checkboxes.forEach(cb => {
-                    if (cb.value === mat) cb.checked = false;
+                    if (cb.value === clave) cb.checked = false;
                 });
             };
 
@@ -311,7 +311,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         formData.append('telefono', document.getElementById('telefono').value);
         formData.append('carrera', document.getElementById('carrera').value);
         formData.append('semestre', document.getElementById('semestre').value);
-        formData.append('materias', JSON.stringify(Array.from(materiasSeleccionadas)));
+        formData.append('materias', JSON.stringify(Array.from(materiasSeleccionadas.keys())));
 
         if (document.getElementById('foto').files[0]) {
             formData.append('foto', document.getElementById('foto').files[0]);

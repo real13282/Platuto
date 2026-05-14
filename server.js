@@ -4,15 +4,17 @@ const fs = require('fs');
 const multer = require('multer');
 
 // ─── Asegurar que existan las carpetas de archivos ───────────────────────────
-const fotoPerfilDir = path.join(__dirname, 'fotoPerfil');
+const fotoPerfilTDir = path.join(__dirname, 'fotoPerfilT');
+const fotoPerfilADir = path.join(__dirname, 'fotoPerfilA');
 const cvDir = path.join(__dirname, 'cv');
-if (!fs.existsSync(fotoPerfilDir)) fs.mkdirSync(fotoPerfilDir, { recursive: true });
+if (!fs.existsSync(fotoPerfilTDir)) fs.mkdirSync(fotoPerfilTDir, { recursive: true });
+if (!fs.existsSync(fotoPerfilADir)) fs.mkdirSync(fotoPerfilADir, { recursive: true });
 if (!fs.existsSync(cvDir)) fs.mkdirSync(cvDir, { recursive: true });
 
 // ─── Configuración de Multer para tutor maestro ──────────────────────────────
 const storageTutorMaestro = multer.diskStorage({
     destination: (req, file, cb) => {
-        if (file.fieldname === 'foto') cb(null, fotoPerfilDir);
+        if (file.fieldname === 'foto') cb(null, fotoPerfilTDir);
         else if (file.fieldname === 'cv') cb(null, cvDir);
         else cb(new Error('Campo de archivo no reconocido'), null);
     },
@@ -34,6 +36,51 @@ const uploadTutorMaestro = multer({
         if (file.fieldname === 'cv' && file.mimetype !== 'application/pdf') {
             return cb(new Error('El CV debe ser un archivo PDF'));
         }
+        cb(null, true);
+    }
+});
+
+const storageTutorAlumno = multer.diskStorage({
+    destination: (req, file, cb) => {
+        if (file.fieldname === 'foto') cb(null, fotoPerfilTDir);
+        else if (file.fieldname === 'cv') cb(null, cvDir);
+        else cb(new Error('Campo de archivo no reconocido'), null);
+    },
+    filename: (req, file, cb) => {
+        const nocontrol = req.body.nocontrol || 'sin_control';
+        const ext = path.extname(file.originalname);
+        if (file.fieldname === 'foto') cb(null, `pf${nocontrol}${ext}`);
+        else if (file.fieldname === 'cv') cb(null, `cv${nocontrol}.pdf`);
+        else cb(new Error('Campo de archivo no reconocido'), null);
+    }
+});
+const uploadTutorAlumno = multer({
+    storage: storageTutorAlumno,
+    limits: { fileSize: 10 * 1024 * 1024 },
+    fileFilter: (req, file, cb) => {
+        if (file.fieldname === 'foto' && !file.mimetype.startsWith('image/')) return cb(new Error('La foto debe ser una imagen válida'));
+        if (file.fieldname === 'cv' && file.mimetype !== 'application/pdf') return cb(new Error('El CV debe ser un archivo PDF'));
+        cb(null, true);
+    }
+});
+
+const storageAsesorado = multer.diskStorage({
+    destination: (req, file, cb) => {
+        if (file.fieldname === 'foto') cb(null, fotoPerfilADir);
+        else cb(new Error('Campo de archivo no reconocido'), null);
+    },
+    filename: (req, file, cb) => {
+        const nocontrol = req.body.nocontrol || 'sin_control';
+        const ext = path.extname(file.originalname);
+        if (file.fieldname === 'foto') cb(null, `pf${nocontrol}${ext}`);
+        else cb(new Error('Campo de archivo no reconocido'), null);
+    }
+});
+const uploadAsesorado = multer({
+    storage: storageAsesorado,
+    limits: { fileSize: 10 * 1024 * 1024 },
+    fileFilter: (req, file, cb) => {
+        if (file.fieldname === 'foto' && !file.mimetype.startsWith('image/')) return cb(new Error('La foto debe ser una imagen válida'));
         cb(null, true);
     }
 });
@@ -112,30 +159,55 @@ app.post('/api/login', async (req, res) => {
 
         const claveProcesada = String(password).substring(0, 8);
 
-        const alumno = await knex('Alumnos')
+        let user = await knex('Alumnos')
             .where({ nocontrol: nocontrol, clave: claveProcesada })
             .first();
 
-        if (alumno) {
-            // Si el rol es tutor, verificamos si está en la tabla Tutores
-            if (role === 'tutor') {
-                const tutor = await knex('Tutores')
-                    .where({ idalumnos: alumno.idalumnos })
+        let isMaestro = false;
+
+        if (!user) {
+            // Intentar buscar en Maestros
+            user = await knex('Maestro')
+                .where({ nocontrol: nocontrol, clave: claveProcesada })
+                .first();
+            if (user) isMaestro = true;
+        }
+
+        if (user) {
+            if (role === 'asesorado') {
+                if (isMaestro) {
+                    return res.status(403).json({ success: false, message: 'Los maestros no pueden iniciar sesión como asesorados.' });
+                }
+                const asesorado = await knex('Asesorados')
+                    .where({ idalumnos: user.idalumnos })
                     .first();
+                if (!asesorado) {
+                    return res.status(403).json({ success: false, message: 'El usuario no está registrado como asesorado. Por favor regístrate primero.' });
+                }
+            } else if (role === 'tutor') {
+                let tutor;
+                if (isMaestro) {
+                    tutor = await knex('Tutores').where({ idmaestro: user.idmaestro }).first();
+                } else {
+                    tutor = await knex('Tutores').where({ idalumnos: user.idalumnos }).first();
+                }
 
                 if (!tutor) {
-                    return res.status(403).json({ success: false, message: 'El usuario no está registrado como tutor. Por favor regístrate.' });
+                    return res.status(403).json({ success: false, message: 'El usuario no está registrado como tutor. Por favor regístrate primero.' });
                 }
             }
+
+            const userId = isMaestro ? user.idmaestro : user.idalumnos;
 
             res.json({
                 success: true,
                 message: 'Login exitoso',
                 data: {
-                    id: alumno.idalumnos,
-                    nombre: alumno.nombre,
-                    nocontrol: alumno.nocontrol,
-                    role: role
+                    id: userId,
+                    nombre: user.nombre,
+                    nocontrol: user.nocontrol,
+                    role: role,
+                    isMaestro: isMaestro
                 }
             });
         } else {
@@ -147,7 +219,7 @@ app.post('/api/login', async (req, res) => {
     }
 });
 
-app.post('/api/register/asesorado', async (req, res) => {
+app.post('/api/register/asesorado', uploadAsesorado.single('foto'), async (req, res) => {
     try {
         const { nocontrol, telefono, materia_interes } = req.body;
 
@@ -160,10 +232,20 @@ app.post('/api/register/asesorado', async (req, res) => {
         if (!alumno) {
             return res.status(404).json({ success: false, message: 'El número de control no existe en nuestros registros' });
         }
-        
+
         // Actualizar teléfono si fue proporcionado
         if (telefono) {
             await knex('Alumnos').where({ idalumnos: alumno.idalumnos }).update({ telefono });
+        }
+
+        const urlFoto = req.file ? `fotoPerfilA/${req.file.filename}` : null;
+
+        let materiasStr = '';
+        try {
+            const arr = JSON.parse(materia_interes);
+            materiasStr = Array.isArray(arr) ? arr.join(',') : materia_interes;
+        } catch {
+            materiasStr = materia_interes || '';
         }
 
         // Verificar si ya está como asesorado
@@ -171,13 +253,16 @@ app.post('/api/register/asesorado', async (req, res) => {
         if (!asesorado) {
             await knex('Asesorados').insert({
                 idalumnos: alumno.idalumnos,
-                materias: materia_interes || ''
+                materias: materiasStr,
+                url_foto_perfil: urlFoto
             });
-        } else if (materia_interes) {
-            // Si ya existe y hay una nueva materia, podrías anexarla o reemplazarla. Lo reemplazamos por simplicidad.
-            await knex('Asesorados').where({ idalumnos: alumno.idalumnos }).update({
-                materias: materia_interes
-            });
+        } else {
+            // Si ya existe, lo actualizamos
+            const updateData = {};
+            if (materiasStr) updateData.materias = materiasStr;
+            if (urlFoto) updateData.url_foto_perfil = urlFoto;
+
+            await knex('Asesorados').where({ idalumnos: alumno.idalumnos }).update(updateData);
         }
 
         res.json({ success: true, message: 'Registro de asesorado exitoso', data: { nocontrol: alumno.nocontrol } });
@@ -187,7 +272,7 @@ app.post('/api/register/asesorado', async (req, res) => {
     }
 });
 
-app.post('/api/register/tutor', async (req, res) => {
+app.post('/api/register/tutor', uploadTutorAlumno.fields([{ name: 'foto', maxCount: 1 }, { name: 'cv', maxCount: 1 }]), async (req, res) => {
     try {
         const { nocontrol, nombre, correo, telefono, carrera, semestre, materias } = req.body;
 
@@ -206,19 +291,33 @@ app.post('/api/register/tutor', async (req, res) => {
             .where({ idalumnos: alumno.idalumnos })
             .update({ correo: correo, telefono: telefono });
 
+        // Rutas de archivos guardados por multer
+        const urlFoto = req.files && req.files['foto'] ? `fotoPerfilT/${req.files['foto'][0].filename}` : null;
+        const urlCv = req.files && req.files['cv'] ? `cv/${req.files['cv'][0].filename}` : null;
+
         // Registrar o actualizar en Tutores
         const tutor = await knex('Tutores').where({ idalumnos: alumno.idalumnos }).first();
-        const materiasStr = materias.join(',');
+
+        let materiasArr = [];
+        try {
+            materiasArr = JSON.parse(materias);
+        } catch { materiasArr = Array.isArray(materias) ? materias : [materias]; }
+        const materiasStr = materiasArr.join(',');
 
         if (tutor) {
+            const updateData = { materias: materiasStr };
+            if (urlFoto) updateData.url_foto_perfil = urlFoto;
+            if (urlCv) updateData.url_cv = urlCv;
+
             await knex('Tutores')
                 .where({ idalumnos: alumno.idalumnos })
-                .update({ materias: materiasStr });
+                .update(updateData);
         } else {
             await knex('Tutores').insert({
                 idalumnos: alumno.idalumnos,
                 materias: materiasStr,
-                url_cv: ''
+                url_foto_perfil: urlFoto,
+                url_cv: urlCv
             });
         }
 
@@ -286,7 +385,7 @@ app.post('/api/register/tutor_maestro',
 
             // Rutas de archivos guardados por multer
             const urlFoto = req.files && req.files['foto']
-                ? `fotoPerfil/${req.files['foto'][0].filename}`
+                ? `fotoPerfilT/${req.files['foto'][0].filename}`
                 : null;
             const urlCv = req.files && req.files['cv']
                 ? `cv/${req.files['cv'][0].filename}`
@@ -346,7 +445,7 @@ app.get('/api/planes-estudio', async (req, res) => {
     try {
         const materias = await knex('Materias')
             .join('Licenciaturas', 'Materias.idlicenciaturas', '=', 'Licenciaturas.idlicenciaturas')
-            .select('Materias.materia', 'Materias.semestre', 'Licenciaturas.nombre_carrera as carrera');
+            .select('Materias.materia', 'Materias.clave', 'Materias.semestre', 'Licenciaturas.nombre_carrera as carrera');
 
         const planesEstudio = {};
 
@@ -354,9 +453,6 @@ app.get('/api/planes-estudio', async (req, res) => {
             // Unify case based on frontend expectations if necessary, 
             // but Licenciaturas table has exact string values we can use.
             const carrera = row.carrera.toLowerCase() === 'arquitectura' ? 'Licenciatura en arquitectura' : row.carrera;
-            // The JSON had "Licenciatura en administración", "Licenciatura en arquitectura", etc.
-            // Let's standardize the keys dynamically by capitalizing only the first letter.
-            // Actually, just sending the name from DB is fine, the frontend uses Object.keys(data).
 
             if (!planesEstudio[carrera]) {
                 planesEstudio[carrera] = {};
@@ -364,7 +460,7 @@ app.get('/api/planes-estudio', async (req, res) => {
             if (!planesEstudio[carrera][row.semestre]) {
                 planesEstudio[carrera][row.semestre] = [];
             }
-            planesEstudio[carrera][row.semestre].push(row.materia);
+            planesEstudio[carrera][row.semestre].push({ nombre: row.materia, clave: row.clave });
         });
 
         res.json({ success: true, data: planesEstudio });

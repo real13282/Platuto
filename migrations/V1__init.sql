@@ -78,6 +78,7 @@ CREATE TABLE IF NOT EXISTS Maestro (
     apellidomat TEXT,
     nombre TEXT NOT NULL,
     ultimoGrado_estudios TEXT,
+    clave TEXT,
     fechanacimiento DATE,
     telefono TEXT,
     correo TEXT,

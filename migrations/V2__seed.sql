@@ -12,8 +12,11 @@ INSERT INTO Licenciaturas (nombre_carrera, periodo, especialidad) VALUES
 ('Licenciatura Diseño Gráfico', 8, 'Diseño');
 
 -- Insertando Maestros
+INSERT INTO Maestro (nocontrol, apellidopat, apellidomat, nombre, ultimoGrado_estudios, clave, fechanacimiento, telefono, correo, sexo) VALUES
+('99999999', 'García', 'López', 'Juan Carlos','Maestria en Educación','123456', '1980-05-15', '5551234567', 'oaxcatjuanga@lameso.edu.mx', 'M');
+
+
 INSERT INTO Maestro (nocontrol, apellidopat, apellidomat, nombre, fechanacimiento, telefono, correo, sexo) VALUES
-('99999999', 'García', 'López', 'Juan Carlos', '1980-05-15', '5551234567', 'oaxcatjuanga@lameso.edu.mx', 'M'),
 ('87654321', 'Martínez', 'Gómez', 'Ana María', '1985-08-22', '5552345678', 'oaxcatanama@lameso.edu.mx', 'F'),
 ('87654329', 'Rodríguez', 'Hernández', 'Luis Alberto', '1975-11-10', '5553456789', 'oaxcatluisro@lameso.edu.mx', 'M'),
 ('87654319', 'Fernández', 'Pérez', 'María José', '1990-03-05', '5554567890', 'oaxcatmariafe@lameso.edu.mx', 'F'),

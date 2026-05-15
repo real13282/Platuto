@@ -2,11 +2,14 @@ const express = require('express');
 const path = require('path');
 const fs = require('fs');
 const multer = require('multer');
+const cookieParser = require('cookie-parser');
+const jwt = require('jsonwebtoken');
+const SECRET_KEY = 'clave_secreta_para_jwt_cambiar_en_produccion';
 
 // ─── Asegurar que existan las carpetas de archivos ───────────────────────────
-const fotoPerfilTDir = path.join(__dirname, 'fotoPerfilT');
-const fotoPerfilADir = path.join(__dirname, 'fotoPerfilA');
-const cvDir = path.join(__dirname, 'cv');
+const fotoPerfilTDir = path.join(__dirname, 'private', 'fotoPerfilT');
+const fotoPerfilADir = path.join(__dirname, 'private', 'fotoPerfilA');
+const cvDir = path.join(__dirname, 'private', 'cv');
 if (!fs.existsSync(fotoPerfilTDir)) fs.mkdirSync(fotoPerfilTDir, { recursive: true });
 if (!fs.existsSync(fotoPerfilADir)) fs.mkdirSync(fotoPerfilADir, { recursive: true });
 if (!fs.existsSync(cvDir)) fs.mkdirSync(cvDir, { recursive: true });
@@ -146,8 +149,44 @@ const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 
-app.use(express.static(path.join(__dirname, '')));
+// ─── Middleware de Autenticación JWT ─────────────────────────────────────────
+const authMiddleware = (req, res, next) => {
+    // Excluir de autenticación los endpoints de login y registro
+    if (
+        req.path.startsWith('/api/login') || 
+        req.path.startsWith('/api/register') ||
+        req.path.startsWith('/api/alumnos') ||
+        req.path.startsWith('/api/maestro') ||
+        req.path.startsWith('/api/planes-estudio')
+    ) {
+        return next();
+    }
+
+    const token = req.cookies.token;
+    if (!token) {
+        // Si no hay token, redirigir a login
+        return res.redirect('/login.html');
+    }
+
+    try {
+        const decoded = jwt.verify(token, SECRET_KEY);
+        req.user = decoded; // Guardamos los datos del usuario en la petición
+        next();
+    } catch (err) {
+        // Token inválido o expirado
+        res.clearCookie('token');
+        return res.redirect('/login.html');
+    }
+};
+
+app.use(express.static(path.join(__dirname, 'public')));
+
+// El middleware protegerá todas las rutas estáticas debajo (es decir, la carpeta private) y otras APIs si las hay.
+app.use(authMiddleware);
+
+app.use(express.static(path.join(__dirname, 'private')));
 
 app.post('/api/login', async (req, res) => {
     try {
@@ -199,6 +238,14 @@ app.post('/api/login', async (req, res) => {
 
             const userId = isMaestro ? user.idmaestro : user.idalumnos;
 
+            const token = jwt.sign(
+                { id: userId, nocontrol: user.nocontrol, role: role, isMaestro: isMaestro },
+                SECRET_KEY,
+                { expiresIn: '2h' }
+            );
+
+            res.cookie('token', token, { httpOnly: true, secure: false });
+
             res.json({
                 success: true,
                 message: 'Login exitoso',
@@ -217,6 +264,11 @@ app.post('/api/login', async (req, res) => {
         console.error("Error en login:", error);
         res.status(500).json({ success: false, message: 'Error interno en el servidor' });
     }
+});
+
+app.get('/api/logout', (req, res) => {
+    res.clearCookie('token');
+    res.redirect('/login.html');
 });
 
 app.post('/api/register/asesorado', uploadAsesorado.single('foto'), async (req, res) => {
@@ -470,8 +522,57 @@ app.get('/api/planes-estudio', async (req, res) => {
     }
 });
 
+app.get('/api/me', async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const role = req.user.role;
+        const isMaestro = req.user.isMaestro;
+
+        let materiasInteresStr = '';
+        let materiasSemestre = [];
+
+        if (role === 'asesorado') {
+            const asesorado = await knex('Asesorados').where({ idalumnos: userId }).first();
+            if (asesorado) {
+                materiasInteresStr = asesorado.materias;
+            }
+        } else if (role === 'tutor') {
+            let tutor;
+            if (isMaestro) {
+                tutor = await knex('Tutores').where({ idmaestro: userId }).first();
+            } else {
+                tutor = await knex('Tutores').where({ idalumnos: userId }).first();
+            }
+            if (tutor) {
+                materiasInteresStr = tutor.materias;
+            }
+        }
+
+        if (!isMaestro) {
+            const alumno = await knex('Alumnos').where({ idalumnos: userId }).first();
+            if (alumno && alumno.idlicenciaturas && alumno.semestre) {
+                const materias = await knex('Materias')
+                    .where({ idlicenciaturas: alumno.idlicenciaturas, semestre: alumno.semestre })
+                    .select('materia');
+                materiasSemestre = materias.map(m => m.materia);
+            }
+        }
+
+        res.json({
+            success: true,
+            data: {
+                materias_interes: materiasInteresStr ? materiasInteresStr.split(',') : [],
+                materias_semestre: materiasSemestre
+            }
+        });
+    } catch (error) {
+        console.error("Error al obtener perfil:", error);
+        res.status(500).json({ success: false, message: 'Error interno en el servidor' });
+    }
+});
+
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
+    res.redirect('/index.html');
 });
 
 app.listen(PORT, () => {

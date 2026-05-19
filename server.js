@@ -430,13 +430,18 @@ app.post('/api/register/tutor', uploadTutorAlumno.fields([{ name: 'foto', maxCou
 app.get('/api/maestro/:nocontrol', async (req, res) => {
     try {
         const { nocontrol } = req.params;
+        const clave = req.query.clave;
         const maestro = await knex('Maestro')
             .where({ nocontrol: nocontrol })
-            .select('nocontrol', 'nombre', 'apellidopat', 'apellidomat', 'correo', 'telefono', 'ultimoGrado_estudios')
+            .select('nocontrol', 'nombre', 'apellidopat', 'apellidomat', 'correo', 'telefono', 'ultimoGrado_estudios', 'clave')
             .first();
 
         if (!maestro) {
             return res.status(404).json({ success: false, message: 'Maestro no encontrado en el sistema' });
+        }
+
+        if (clave && String(maestro.clave) !== String(clave)) {
+            return res.status(401).json({ success: false, message: 'Clave incorrecta' });
         }
 
         const nombreCompleto = [maestro.apellidopat, maestro.apellidomat, maestro.nombre]
@@ -537,6 +542,7 @@ app.post('/api/register/tutor_maestro',
 app.get('/api/alumnos/:nocontrol', async (req, res) => {
     try {
         const { nocontrol } = req.params;
+        const clave = req.query.clave;
         const alumno = await knex('Alumnos')
             .leftJoin('Licenciaturas', 'Alumnos.idlicenciaturas', 'Licenciaturas.idlicenciaturas')
             .where({ nocontrol: nocontrol })
@@ -544,6 +550,9 @@ app.get('/api/alumnos/:nocontrol', async (req, res) => {
             .first();
 
         if (alumno) {
+            if (clave && String(alumno.clave) !== String(clave)) {
+                return res.status(401).json({ success: false, message: 'Clave incorrecta' });
+            }
             res.json({ success: true, data: alumno });
         } else {
             res.status(404).json({ success: false, message: 'Alumno no encontrado' });

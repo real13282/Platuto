@@ -452,17 +452,16 @@
                     const col = document.createElement('div');
                     col.className = 'col-xl-3 col-md-6 mb-4 tutoria-card';
                     col.dataset.materia = tutoria.materia.toLowerCase();
-                    col.dataset.tema = tutoria.tema_especifico ? tutoria.tema_especifico.toLowerCase() : '';
 
-                    const fecha = new Date(tutoria.fecha_hora).toLocaleString('es-MX', { dateStyle: 'short', timeStyle: 'short' });
+                    const fecha = tutoria.fecha_hora ? new Date(tutoria.fecha_hora).toLocaleString('es-MX', { dateStyle: 'short', timeStyle: 'short' }) : 'Fecha por definir';
 
                     col.innerHTML = `
                         <div class="card border-left-success shadow h-100 py-2 hover-card" style="cursor: pointer; transition: transform 0.2s;">
                             <div class="card-body">
                                 <div class="row no-gutters align-items-center">
                                     <div class="col mr-2">
-                                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">${tutoria.materia}</div>
-                                        <div class="h6 mb-1 font-weight-bold text-gray-800">${tutoria.tema_especifico || 'Tema general'}</div>
+                                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">${tutoria.clave}</div>
+                                        <div class="h6 mb-1 font-weight-bold text-gray-800">${tutoria.materia}</div>
                                         <div class="text-xs text-gray-500 mb-1"><i class="fas fa-user fa-sm fa-fw mr-1"></i>${tutoria.tutor_nombre}</div>
                                         <div class="text-xs text-gray-500"><i class="fas fa-calendar fa-sm fa-fw mr-1"></i>${fecha}</div>
                                     </div>
@@ -497,7 +496,7 @@
             }
             const filtradas = todasLasTutorias.filter(t =>
                 t.materia.toLowerCase().includes(q) ||
-                (t.tema_especifico && t.tema_especifico.toLowerCase().includes(q))
+                (t.clave && t.clave.toLowerCase().includes(q))
             );
             renderTutorias(filtradas);
         }

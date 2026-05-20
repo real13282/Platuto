@@ -37,10 +37,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Prefill data
     const urlParams = new URLSearchParams(window.location.search);
     const nocontrol = urlParams.get('nocontrol');
+    const clave = urlParams.get('clave');
 
     if (nocontrol) {
         try {
-            const res = await fetch('/api/alumnos/' + encodeURIComponent(nocontrol));
+            const res = await fetch('/api/alumnos/' + encodeURIComponent(nocontrol) + (clave ? '?clave=' + encodeURIComponent(clave) : ''));
             const result = await res.json();
 
             if (result.success && result.data) {
@@ -279,6 +280,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         const formData = new FormData();
         formData.append('nocontrol', nocontrolValue);
+        if (clave) formData.append('clave', clave);
         formData.append('telefono', telefono);
         formData.append('materia_interes', JSON.stringify(Array.from(materiasSeleccionadas.keys())));
 

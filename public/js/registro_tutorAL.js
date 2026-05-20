@@ -48,10 +48,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     // ── 3. Pre-rellenar datos si viene nocontrol en la URL ──────────────────
     const urlParams = new URLSearchParams(window.location.search);
     const nocontrol = urlParams.get('nocontrol');
+    const clave = urlParams.get('clave');
     let alumnoSemestre = null; // semestre real del alumno (se usará para limitar materias)
 
     if (nocontrol) {
-        fetch('/api/alumnos/' + encodeURIComponent(nocontrol))
+        fetch('/api/alumnos/' + encodeURIComponent(nocontrol) + (clave ? '?clave=' + encodeURIComponent(clave) : ''))
             .then(res => res.json())
             .then(result => {
                 if (result.success && result.data) {
@@ -306,6 +307,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         const formData = new FormData();
         formData.append('nocontrol', nocontrol);
+        if (clave) formData.append('clave', clave);
         formData.append('nombre', document.getElementById('nombre').value);
         formData.append('correo', document.getElementById('correo').value);
         formData.append('telefono', document.getElementById('telefono').value);

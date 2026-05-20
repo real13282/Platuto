@@ -299,16 +299,20 @@ app.get('/api/logout', (req, res) => {
 
 app.post('/api/register/asesorado', uploadAsesorado.single('foto'), async (req, res) => {
     try {
-        const { nocontrol, telefono, materia_interes } = req.body;
+        const { nocontrol, clave, telefono, materia_interes } = req.body;
 
-        if (!nocontrol) {
-            return res.status(400).json({ success: false, message: 'Falta el número de control' });
+        if (!nocontrol || !clave) {
+            return res.status(400).json({ success: false, message: 'Faltan datos obligatorios (nocontrol o clave)' });
         }
 
         const alumno = await knex('Alumnos').where({ nocontrol: nocontrol }).first();
 
         if (!alumno) {
             return res.status(404).json({ success: false, message: 'El número de control no existe en nuestros registros' });
+        }
+
+        if (String(alumno.clave) !== String(clave)) {
+            return res.status(401).json({ success: false, message: 'Clave incorrecta' });
         }
 
         // Actualizar teléfono si fue proporcionado
@@ -352,9 +356,9 @@ app.post('/api/register/asesorado', uploadAsesorado.single('foto'), async (req, 
 
 app.post('/api/register/tutor', uploadTutorAlumno.fields([{ name: 'foto', maxCount: 1 }, { name: 'cv', maxCount: 1 }]), async (req, res) => {
     try {
-        const { nocontrol, nombre, correo, telefono, carrera, semestre, materias } = req.body;
+        const { nocontrol, clave, nombre, correo, telefono, carrera, semestre, materias } = req.body;
 
-        if (!nocontrol || !materias || materias.length === 0) {
+        if (!nocontrol || !clave || !materias || materias.length === 0) {
             return res.status(400).json({ success: false, message: 'Faltan datos obligatorios' });
         }
 
@@ -362,6 +366,10 @@ app.post('/api/register/tutor', uploadTutorAlumno.fields([{ name: 'foto', maxCou
 
         if (!alumno) {
             return res.status(404).json({ success: false, message: 'El número de control no existe en nuestros registros' });
+        }
+
+        if (String(alumno.clave) !== String(clave)) {
+            return res.status(401).json({ success: false, message: 'Clave incorrecta' });
         }
 
         // Actualizar correo y teléfono en Alumnos si vienen en la petición
@@ -468,16 +476,20 @@ app.post('/api/register/tutor_maestro',
     uploadTutorMaestro.fields([{ name: 'foto', maxCount: 1 }, { name: 'cv', maxCount: 1 }]),
     async (req, res) => {
         try {
-            const { nocontrol, telefono, grado_estudio, materias } = req.body;
+            const { nocontrol, clave, telefono, grado_estudio, materias } = req.body;
 
-            if (!nocontrol || !materias || materias.length === 0) {
-                return res.status(400).json({ success: false, message: 'Faltan datos obligatorios (nocontrol o materias)' });
+            if (!nocontrol || !clave || !materias || materias.length === 0) {
+                return res.status(400).json({ success: false, message: 'Faltan datos obligatorios (nocontrol, clave o materias)' });
             }
 
             // Buscar maestro
             const maestro = await knex('Maestro').where({ nocontrol }).first();
             if (!maestro) {
                 return res.status(404).json({ success: false, message: 'El número de control no existe en nuestros registros' });
+            }
+
+            if (String(maestro.clave) !== String(clave)) {
+                return res.status(401).json({ success: false, message: 'Clave incorrecta' });
             }
 
             // Verificar si ya está registrado como tutor

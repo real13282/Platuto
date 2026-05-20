@@ -36,10 +36,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Prefill de datos del maestro desde la URL y el API
     const urlParams = new URLSearchParams(window.location.search);
     const nocontrol = urlParams.get('nocontrol');
+    const clave = urlParams.get('clave');
     if (nocontrol) {
         document.getElementById('nocontrol').value = nocontrol;
         try {
-            const resp = await fetch(`/api/maestro/${encodeURIComponent(nocontrol)}`);
+            const resp = await fetch(`/api/maestro/${encodeURIComponent(nocontrol)}${clave ? '?clave=' + encodeURIComponent(clave) : ''}`);
             const result = await resp.json();
             if (result.success && result.data) {
                 const d = result.data;
@@ -256,6 +257,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         const formData = new FormData();
         formData.append('nocontrol', document.getElementById('nocontrol').value);
+        if (clave) formData.append('clave', clave);
         formData.append('nombre', document.getElementById('nombre').value);
         formData.append('correo', document.getElementById('correo').value);
         formData.append('telefono', document.getElementById('telefono').value);

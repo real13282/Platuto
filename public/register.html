@@ -244,7 +244,7 @@
                 const result = await response.json();
 
                 if (result.success && result.data) {
-                    window.location.href = 'registro_asesorado.html?nocontrol=' + encodeURIComponent(nocontrol);
+                    window.location.href = 'registro_asesorado.html?nocontrol=' + encodeURIComponent(nocontrol) + '&clave=' + encodeURIComponent(clave);
                 } else {
                     alert(result.message || 'Número de control o clave incorrectos. Verifica tu información.');
                     btn.disabled = false;
@@ -275,9 +275,9 @@
 
                 if (result.success && result.data) {
                     if (tipo === 'alumno') {
-                        window.location.href = 'registroAl_tutor.html?nocontrol=' + encodeURIComponent(nocontrol);
+                        window.location.href = 'registroAl_tutor.html?nocontrol=' + encodeURIComponent(nocontrol) + '&clave=' + encodeURIComponent(clave);
                     } else {
-                        window.location.href = 'registro_tutor.html?nocontrol=' + encodeURIComponent(nocontrol);
+                        window.location.href = 'registro_tutor.html?nocontrol=' + encodeURIComponent(nocontrol) + '&clave=' + encodeURIComponent(clave);
                     }
                 } else {
                     alert(result.message || 'Número de control o clave incorrectos. Verifica tu información.');

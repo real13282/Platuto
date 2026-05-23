@@ -611,6 +611,7 @@ app.get('/api/tutorias', async (req, res) => {
             .join('Materias', 'Tutorias.idclases', '=', 'Materias.idclases')
             .leftJoin('Maestro', 'Tutores.idmaestro', '=', 'Maestro.idmaestro')
             .leftJoin('Alumnos', 'Tutores.idalumnos', '=', 'Alumnos.idalumnos')
+            .leftJoin('Licenciaturas', 'Alumnos.idlicenciaturas', '=', 'Licenciaturas.idlicenciaturas')
             .select(
                 'Tutorias.idtutoria',
                 'Materias.materia',
@@ -618,6 +619,15 @@ app.get('/api/tutorias', async (req, res) => {
                 'Tutorias.fecha_hora',
                 'Tutorias.estado',
                 'Tutores.idTutores as id_tutor',
+                'Tutores.url_cv',
+                'Tutores.url_foto_perfil',
+                'Alumnos.correo as alumno_correo',
+                'Alumnos.telefono as alumno_telefono',
+                'Licenciaturas.nombre_carrera as alumno_carrera',
+                'Alumnos.semestre as alumno_semestre',
+                'Maestro.correo as maestro_correo',
+                'Maestro.telefono as maestro_telefono',
+                'Maestro.ultimoGrado_estudios as maestro_grado',
                 knex.raw("COALESCE(Maestro.nombre || ' ' || Maestro.apellidopat, Alumnos.nombre || ' ' || Alumnos.apellidopat) as tutor_nombre")
             );
 
@@ -641,6 +651,28 @@ app.get('/api/tutorias', async (req, res) => {
         res.json({ success: true, data: tutorias });
     } catch (error) {
         console.error("Error al obtener tutorías:", error);
+        res.status(500).json({ success: false, message: 'Error interno en el servidor' });
+    }
+});
+
+app.post('/api/tutorias/:id/solicitar', async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const tutoria = await knex('Tutorias').where({ idtutoria: id }).first();
+        if (!tutoria) {
+            return res.status(404).json({ success: false, message: 'Tutoría no encontrada' });
+        }
+
+        if (tutoria.estado !== 'Disponible') {
+            return res.status(400).json({ success: false, message: 'Esta tutoría ya no está disponible' });
+        }
+
+        await knex('Tutorias').where({ idtutoria: id }).update({ estado: 'Solicitada' });
+
+        res.json({ success: true, message: 'Tutoría solicitada exitosamente' });
+    } catch (error) {
+        console.error("Error al solicitar tutoría:", error);
         res.status(500).json({ success: false, message: 'Error interno en el servidor' });
     }
 });

@@ -244,7 +244,13 @@
                 const result = await response.json();
 
                 if (result.success && result.data) {
-                    window.location.href = 'registro_asesorado.html?nocontrol=' + encodeURIComponent(nocontrol) + '&clave=' + encodeURIComponent(clave);
+                    if (result.data.is_asesorado) {
+                        alert('Ya te encuentras registrado como Asesorado. Si deseas actualizar tus datos, por favor inicia sesión.');
+                        btn.disabled = false;
+                        btn.textContent = 'Enviar';
+                    } else {
+                        window.location.href = 'registro_asesorado.html?nocontrol=' + encodeURIComponent(nocontrol) + '&clave=' + encodeURIComponent(clave);
+                    }
                 } else {
                     alert(result.message || 'Número de control o clave incorrectos. Verifica tu información.');
                     btn.disabled = false;
@@ -274,6 +280,13 @@
                 const result = await response.json();
 
                 if (result.success && result.data) {
+                    if (result.data.is_tutor) {
+                        alert('Ya te encuentras registrado como Tutor. Si deseas actualizar tus datos, por favor inicia sesión.');
+                        btn.disabled = false;
+                        btn.textContent = 'Enviar';
+                        return;
+                    }
+
                     if (tipo === 'alumno') {
                         window.location.href = 'registroAl_tutor.html?nocontrol=' + encodeURIComponent(nocontrol) + '&clave=' + encodeURIComponent(clave);
                     } else {

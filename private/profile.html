@@ -4,91 +4,455 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>SB Admin 2 - Profile</title>
+    <title>Platuto - Mi Perfil</title>
     <!-- Custom fonts for this template-->
     <link href="vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
     <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet">
     <!-- Custom styles for this template-->
     <link href="css/sb-admin-2.min.css" rel="stylesheet">
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <style>
+        body {
+            background-color: #f8f9fc;
+        }
+        .profile-header {
+            background: linear-gradient(135deg, #008B8B 0%, #1a365d 100%);
+            height: 180px;
+            border-radius: 1rem 1rem 0 0;
+            position: relative;
+        }
+        .profile-avatar {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            border: 5px solid #fff;
+            object-fit: cover;
+            position: absolute;
+            bottom: -75px;
+            left: 50%;
+            transform: translateX(-50%);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            background-color: #fff;
+        }
+        .profile-card {
+            border-radius: 1rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            border: none;
+            margin-top: 2rem;
+            margin-bottom: 4rem;
+        }
+        .profile-content {
+            padding-top: 90px;
+        }
+        .badge-role {
+            font-size: 0.9rem;
+            padding: 0.5em 1em;
+            border-radius: 20px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 700;
+        }
+        .subject-badge {
+            background-color: #e3f2fd;
+            color: #0d47a1;
+            padding: 0.6em 1.2em;
+            border-radius: 20px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            margin: 0.3rem;
+            box-shadow: 0 2px 5px rgba(13,71,161,0.1);
+        }
+        .subject-badge i {
+            margin-right: 8px;
+            color: #1976d2;
+        }
+        /* Glassmorphism for the edit button */
+        .btn-edit-specialty {
+            background: rgba(0, 139, 139, 0.1);
+            color: #008B8B;
+            border: 2px solid #008B8B;
+            border-radius: 25px;
+            padding: 8px 20px;
+            font-weight: 700;
+            transition: all 0.3s ease;
+        }
+        .btn-edit-specialty:hover {
+            background: #008B8B;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0, 139, 139, 0.3);
+        }
+        
+        .semester-btn {
+            background-color: #eaecf4;
+            color: #5a5c69;
+            border-radius: 0.5rem;
+        }
+        .list-unstyled li {
+            padding: 5px 0;
+        }
+    </style>
 </head>
-<body id="page-top" class="bg-gradient-primary">
-    <div class="container mt-5">
-        <div class="card o-hidden border-0 shadow-lg my-5">
-            <div class="card-body p-0">
-                <div class="row">
-                    <div class="col-lg-12">
-                        <div class="p-5">
-                            <div class="text-center">
-                                <h1 class="h4 text-gray-900 mb-4">Perfil de Usuario</h1>
-                            </div>
-                            <div id="profileContainer" class="text-center">
-                                <!-- Profile content loaded via JS -->
-                                <p>Cargando información del perfil...</p>
-                            </div>
-                            <hr>
-                            <div class="text-center">
-                                <a class="small" href="index.html">Volver al Dashboard</a>
-                            </div>
-                            <div class="text-center mt-3">
-                                <a class="btn btn-danger btn-sm" href="/api/logout">Cerrar Sesión</a>
+<body id="page-top">
+
+    <div class="container">
+        <!-- Return button -->
+        <div class="pt-4 pb-2">
+            <a href="index.html" class="text-gray-600 font-weight-bold hover-dark" style="text-decoration: none;">
+                <i class="fas fa-arrow-left mr-2"></i> Volver al Dashboard
+            </a>
+        </div>
+
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card profile-card">
+                    <div class="profile-header shadow-sm">
+                        <img id="profileImage" src="img/undraw_profile.svg" alt="Profile" class="profile-avatar">
+                    </div>
+                    <div class="card-body profile-content text-center pb-5">
+                        
+                        <div id="loader" class="py-4">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="sr-only">Cargando...</span>
                             </div>
                         </div>
+
+                        <div id="profileContainer" class="d-none">
+                            <h2 class="font-weight-900 text-gray-900 mb-1" id="profileName">Cargando...</h2>
+                            <p class="text-gray-500 mb-3" id="profileNoControl">No. Control: N/A</p>
+                            
+                            <div class="mb-4" id="profileRoleBadge">
+                                <!-- Badge injected via JS -->
+                            </div>
+
+                            <div class="row justify-content-center mb-4 text-gray-700">
+                                <div class="col-sm-6 mb-2">
+                                    <i class="fas fa-envelope mr-2 text-primary"></i> <span id="profileEmail" class="font-weight-600">N/A</span>
+                                </div>
+                                <div class="col-sm-6 mb-2" id="profilePhoneContainer">
+                                    <i class="fas fa-phone mr-2 text-primary"></i> <span id="profilePhone" class="font-weight-600">N/A</span>
+                                </div>
+                            </div>
+
+                            <hr class="mx-5 my-4 border-bottom-primary">
+
+                            <div class="d-flex justify-content-between align-items-center mb-4 px-4">
+                                <h4 class="font-weight-bold text-gray-800 m-0 text-left">Materias de Interés / Especialidad</h4>
+                                <button id="btnEditMaterias" class="btn btn-edit-specialty d-none" data-toggle="modal" data-target="#editMateriasModal">
+                                    <i class="fas fa-pen mr-1"></i> Modificar
+                                </button>
+                            </div>
+
+                            <div id="materiasList" class="px-3 text-left d-flex flex-wrap justify-content-center">
+                                <!-- Subjects injected via JS -->
+                            </div>
+                            
+                            <div class="mt-5 text-center">
+                                <a class="btn btn-outline-danger px-4 font-weight-bold" style="border-radius: 20px;" href="/api/logout">
+                                    <i class="fas fa-sign-out-alt mr-2"></i>Cerrar Sesión
+                                </a>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Modal Editar Materias -->
+    <div class="modal fade" id="editMateriasModal" tabindex="-1" role="dialog" aria-labelledby="editMateriasModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+            <div class="modal-content shadow-lg border-0" style="border-radius: 1rem;">
+                <div class="modal-header" style="background-color: #008B8B; color: white; border-radius: 1rem 1rem 0 0;">
+                    <h5 class="modal-title font-weight-bold" id="editMateriasModalLabel">Modificar Especialidad</h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body p-4">
+                    <p class="text-gray-600 mb-4">Selecciona las materias que deseas impartir en tus tutorías. Los cambios se reflejarán inmediatamente en las sesiones disponibles.</p>
+                    
+                    <div class="form-group mb-4">
+                        <label class="font-weight-bold text-gray-800">Carrera</label>
+                        <select class="form-control" id="carreraSelect">
+                            <option value="" disabled selected>Cargando carreras...</option>
+                        </select>
+                    </div>
+
+                    <div id="materiasCheckboxContainer">
+                        <!-- Checkboxes generated here -->
+                    </div>
+                </div>
+                <div class="modal-footer border-top-0 pt-0 pb-4 pr-4">
+                    <button type="button" class="btn btn-secondary px-4 font-weight-bold" style="border-radius: 8px;" data-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary px-4 font-weight-bold" style="background-color: #008B8B; border-color: #008B8B; border-radius: 8px;" id="btnSaveMaterias">Guardar Cambios</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Bootstrap core JavaScript-->
     <script src="vendor/jquery/jquery.min.js"></script>
     <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
-    <!-- Core plugin JavaScript-->
     <script src="vendor/jquery-easing/jquery.easing.min.js"></script>
+
     <script>
+        let userData = null;
+        let planesEstudio = {};
+        let selectedMateriasKeys = new Set();
+        let alumnoSemestre = null;
+
         document.addEventListener('DOMContentLoaded', async () => {
+            await loadProfile();
+        });
+
+        async function loadProfile() {
             try {
-                // El endpoint /api/me necesita extenderse para traer nombre y otros datos básicos,
-                // Pero podemos intentar obtener lo que esté disponible y complementarlo.
-                // Usaremos /api/me para el rol.
+                document.getElementById('loader').classList.remove('d-none');
+                document.getElementById('profileContainer').classList.add('d-none');
+
                 const response = await fetch('/api/me');
                 const result = await response.json();
 
-                const container = document.getElementById('profileContainer');
-
-                if (result.success) {
-                    let rolDisplay = 'Usuario';
-                    let materiasHtml = '';
-
-                    if (result.data.materias_interes && result.data.materias_interes.length > 0) {
-                        materiasHtml = `
-                            <h5 class="mt-4 text-gray-800">Materias de Interés / Especialidad</h5>
-                            <ul class="list-unstyled">
-                                ${result.data.materias_interes.map(m => `<li><i class="fas fa-check text-success mr-2"></i>${m}</li>`).join('')}
-                            </ul>
-                        `;
+                if (result.success && result.data) {
+                    userData = result.data;
+                    const user = userData.user;
+                    
+                    // Name and Control
+                    document.getElementById('profileName').textContent = user.nombre || 'Usuario';
+                    document.getElementById('profileNoControl').textContent = `No. Control: ${user.nocontrol || 'N/A'}`;
+                    
+                    // Photo
+                    const profileImage = document.getElementById('profileImage');
+                    if (user.url_foto_perfil) {
+                        profileImage.src = '/' + user.url_foto_perfil;
                     } else {
-                        materiasHtml = `<p class="text-muted mt-3">No hay materias registradas.</p>`;
+                        profileImage.src = 'img/undraw_profile.svg';
                     }
 
-                    const user = result.data.user || {};
-                    const roleLabel = user.role ? user.role.toUpperCase() : (user.isMaestro ? 'MAESTRO' : 'ALUMNO');
-                    const email = user.correo ? `<p class="text-gray-600 mb-1"><i class="fas fa-envelope mr-2"></i>${user.correo}</p>` : '';
+                    // Contact info
+                    document.getElementById('profileEmail').textContent = user.correo || 'No especificado';
+                    // Optional phone
+                    const phoneEl = document.getElementById('profilePhone');
+                    if(user.telefono) {
+                        phoneEl.textContent = user.telefono;
+                        document.getElementById('profilePhoneContainer').classList.remove('d-none');
+                    } else {
+                        document.getElementById('profilePhoneContainer').classList.add('d-none');
+                    }
 
-                    container.innerHTML = `
-                        <div class="mb-4">
-                            <i class="fas fa-user-circle fa-5x text-gray-300"></i>
-                        </div>
-                        <h3 class="font-weight-bold text-gray-800 mb-1">${user.nombre || 'Usuario'}</h3>
-                        <p class="text-primary font-weight-bold mb-3">${roleLabel} | No. Control: ${user.nocontrol || 'N/A'}</p>
-                        ${email}
-                        <hr class="my-4">
-                        ${materiasHtml}
-                    `;
+                    // Role Badge
+                    const badgeContainer = document.getElementById('profileRoleBadge');
+                    if (user.role === 'tutor') {
+                        badgeContainer.innerHTML = `<span class="badge badge-success badge-role shadow-sm"><i class="fas fa-chalkboard-teacher mr-2"></i>Tutor ${user.isMaestro ? 'Maestro' : 'Alumno'}</span>`;
+                        document.getElementById('btnEditMaterias').classList.remove('d-none');
+                    } else {
+                        badgeContainer.innerHTML = `<span class="badge badge-primary badge-role shadow-sm"><i class="fas fa-user-graduate mr-2"></i>Asesorado</span>`;
+                        document.getElementById('btnEditMaterias').classList.add('d-none');
+                    }
+
+                    // Materias list
+                    const materiasContainer = document.getElementById('materiasList');
+                    materiasContainer.innerHTML = '';
+                    if (userData.materias_interes && userData.materias_interes.length > 0) {
+                        userData.materias_interes.forEach(materia => {
+                            materiasContainer.innerHTML += `
+                                <div class="subject-badge">
+                                    <i class="fas fa-book"></i>
+                                    <span>${materia}</span> <!-- Mostrará la clave o nombre, preferible la clave si guardamos eso, pero el frontend asume que materias_interes tiene el string exacto. En realidad guarda CLAVES. Necesitaremos mapearlo. -->
+                                </div>
+                            `;
+                        });
+                    } else {
+                        materiasContainer.innerHTML = `<p class="text-muted text-center w-100 font-italic">No hay materias registradas.</p>`;
+                    }
+                    
+                    // Almacenar materias actuales (son las claves guardadas en BD)
+                    selectedMateriasKeys = new Set(userData.materias_interes);
+
+                    document.getElementById('loader').classList.add('d-none');
+                    document.getElementById('profileContainer').classList.remove('d-none');
+                    
+                    // Si es tutor, precargar planes de estudio
+                    if (user.role === 'tutor') {
+                        await loadPlanesEstudio();
+                        // Tratar de obtener semestre para Tutor Alumno
+                        if (!user.isMaestro) {
+                            // Se puede hacer fetch a /api/alumnos/... para ver su semestre y carrera, o buscarlo.
+                            // Pero para simplicidad, podemos usar un endpoint o simplemente no restringir semestres.
+                            // Como es modificación, mostraremos todos los semestres de su carrera si sabemos cuál es.
+                            // Vamos a buscar la info completa del alumno
+                            const resAl = await fetch(`/api/alumnos/${user.nocontrol}`);
+                            const datAl = await resAl.json();
+                            if(datAl.success && datAl.data) {
+                                alumnoSemestre = datAl.data.semestre;
+                                // preseleccionar carrera
+                                const cSelect = document.getElementById('carreraSelect');
+                                Array.from(cSelect.options).forEach(o => {
+                                    if(o.value.toLowerCase() === datAl.data.nombre_carrera.toLowerCase()) {
+                                        o.selected = true;
+                                        renderCheckboxes();
+                                    }
+                                });
+                            }
+                        } else {
+                            // Maestro, puede enseñar lo que sea, selecciona la carrera manually
+                            document.getElementById('carreraSelect').addEventListener('change', renderCheckboxes);
+                        }
+                    }
+
                 } else {
-                    container.innerHTML = `<p class="text-danger">No se pudo cargar el perfil.</p>`;
+                    Swal.fire('Error', 'No se pudo cargar el perfil', 'error');
                 }
             } catch (error) {
                 console.error("Error al cargar perfil:", error);
-                document.getElementById('profileContainer').innerHTML = `<p class="text-danger">Error interno al cargar perfil.</p>`;
+                Swal.fire('Error', 'Error de conexión', 'error');
+            }
+        }
+
+        async function loadPlanesEstudio() {
+            try {
+                const res = await fetch('/api/planes-estudio');
+                const result = await res.json();
+                if (result.success) {
+                    planesEstudio = result.data;
+                    const cSelect = document.getElementById('carreraSelect');
+                    cSelect.innerHTML = '<option value="" disabled selected>Selecciona una carrera...</option>';
+                    Object.keys(planesEstudio).sort().forEach(c => {
+                        const opt = document.createElement('option');
+                        opt.value = c;
+                        opt.textContent = c;
+                        cSelect.appendChild(opt);
+                    });
+                    
+                    cSelect.addEventListener('change', renderCheckboxes);
+                }
+            } catch(e) {
+                console.error(e);
+            }
+        }
+
+        function renderCheckboxes() {
+            const carrera = document.getElementById('carreraSelect').value;
+            const container = document.getElementById('materiasCheckboxContainer');
+            container.innerHTML = '';
+            
+            if(!carrera || !planesEstudio[carrera]) return;
+
+            const semestres = planesEstudio[carrera];
+            // Sort semestres
+            const numSemestres = Object.keys(semestres).map(Number).sort((a,b)=>a-b);
+            
+            // Para Tutor Alumno, si queremos restringir a su semestre máximo:
+            let limit = numSemestres.length;
+            if(userData && userData.user.role === 'tutor' && !userData.user.isMaestro && alumnoSemestre) {
+                limit = alumnoSemestre;
+            }
+
+            for(const sem of numSemestres) {
+                if(sem > limit) continue;
+                
+                const sObj = semestres[sem];
+                
+                const wrapper = document.createElement('div');
+                wrapper.className = 'mb-3';
+
+                const btn = document.createElement('button');
+                btn.className = 'btn btn-block text-left font-weight-bold d-flex justify-content-between align-items-center shadow-sm semester-btn p-3';
+                btn.innerHTML = `<span>${sem}° Semestre</span> <i class="fas fa-chevron-down"></i>`;
+                
+                const ul = document.createElement('ul');
+                ul.className = 'list-unstyled mt-2 pl-3 py-2';
+                ul.style.display = 'none';
+                ul.style.borderLeft = '3px solid #008B8B';
+
+                btn.onclick = () => {
+                    const isHidden = ul.style.display === 'none';
+                    ul.style.display = isHidden ? 'block' : 'none';
+                    btn.querySelector('i').style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';
+                    btn.querySelector('i').style.transition = 'transform 0.3s';
+                };
+
+                // Remover duplicados en materias
+                const uniqueMats = [];
+                const seen = new Set();
+                sObj.forEach(m => {
+                    if(!seen.has(m.clave)) {
+                        seen.add(m.clave);
+                        uniqueMats.push(m);
+                    }
+                });
+
+                uniqueMats.sort((a,b) => a.nombre.localeCompare(b.nombre)).forEach((mat, idx) => {
+                    const li = document.createElement('li');
+                    li.className = 'custom-control custom-checkbox mb-2';
+                    
+                    const inp = document.createElement('input');
+                    inp.type = 'checkbox';
+                    inp.className = 'custom-control-input';
+                    inp.id = `mat_${sem}_${idx}`;
+                    inp.value = mat.clave;
+                    inp.checked = selectedMateriasKeys.has(mat.clave);
+                    
+                    inp.onchange = function() {
+                        if(this.checked) selectedMateriasKeys.add(mat.clave);
+                        else selectedMateriasKeys.delete(mat.clave);
+                    };
+
+                    const lbl = document.createElement('label');
+                    lbl.className = 'custom-control-label text-gray-700';
+                    lbl.htmlFor = `mat_${sem}_${idx}`;
+                    lbl.textContent = mat.nombre;
+
+                    li.appendChild(inp);
+                    li.appendChild(lbl);
+                    ul.appendChild(li);
+                });
+
+                if(uniqueMats.length > 0) {
+                    wrapper.appendChild(btn);
+                    wrapper.appendChild(ul);
+                    container.appendChild(wrapper);
+                }
+            }
+        }
+
+        document.getElementById('btnSaveMaterias').addEventListener('click', async () => {
+            if (selectedMateriasKeys.size === 0) {
+                Swal.fire('Atención', 'Debes seleccionar al menos una materia para tu especialidad.', 'warning');
+                return;
+            }
+
+            const btn = document.getElementById('btnSaveMaterias');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Guardando...';
+
+            try {
+                const response = await fetch('/api/me/tutor/materias', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ materias: Array.from(selectedMateriasKeys) })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    await Swal.fire('¡Éxito!', 'Tus materias de especialidad han sido actualizadas.', 'success');
+                    $('#editMateriasModal').modal('hide');
+                    await loadProfile(); // Recargar el perfil visualmente
+                } else {
+                    Swal.fire('Error', result.message || 'No se pudo actualizar.', 'error');
+                }
+            } catch (error) {
+                console.error(error);
+                Swal.fire('Error', 'Fallo al conectar con el servidor', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Guardar Cambios';
             }
         });
     </script>

@@ -341,8 +341,8 @@
                         <li class="nav-item dropdown no-arrow">
                             <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
                                 data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <span class="mr-2 d-none d-lg-inline text-gray-600 small">Douglas McGee</span>
-                                <img class="img-profile rounded-circle" src="img/undraw_profile.svg">
+                                <span class="mr-2 d-none d-lg-inline text-gray-600 small" id="navUserName">Cargando...</span>
+                                <img class="img-profile rounded-circle" id="navUserFoto" src="img/undraw_profile.svg" style="object-fit: cover;">
                             </a>
                             <!-- Dropdown - User Information -->
                             <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in"
@@ -751,6 +751,15 @@
                 const resultMe = await responseMe.json();
 
                 if (resultMe.success && resultMe.data) {
+                    // Actualizar Navbar User Info
+                    const user = resultMe.data.user;
+                    if (user) {
+                        const navUserName = document.getElementById('navUserName');
+                        const navUserFoto = document.getElementById('navUserFoto');
+                        if (navUserName) navUserName.textContent = user.nombre || 'Usuario';
+                        if (navUserFoto && user.url_foto_perfil) navUserFoto.src = '/' + user.url_foto_perfil;
+                    }
+
                     const menu = document.getElementById('materiasFilterMenu');
                     const separator = menu.querySelector('.dropdown-divider');
                     const header = menu.querySelector('.dropdown-header');

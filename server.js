@@ -441,7 +441,7 @@ app.get('/api/maestro/:nocontrol', async (req, res) => {
         const clave = req.query.clave;
         const maestro = await knex('Maestro')
             .where({ nocontrol: nocontrol })
-            .select('nocontrol', 'nombre', 'apellidopat', 'apellidomat', 'correo', 'telefono', 'ultimoGrado_estudios', 'clave')
+            .select('idmaestro', 'nocontrol', 'nombre', 'apellidopat', 'apellidomat', 'correo', 'telefono', 'ultimoGrado_estudios', 'clave')
             .first();
 
         if (!maestro) {
@@ -451,6 +451,8 @@ app.get('/api/maestro/:nocontrol', async (req, res) => {
         if (clave && String(maestro.clave) !== String(clave)) {
             return res.status(401).json({ success: false, message: 'Clave incorrecta' });
         }
+
+        const tutor = await knex('Tutores').where({ idmaestro: maestro.idmaestro }).first();
 
         const nombreCompleto = [maestro.apellidopat, maestro.apellidomat, maestro.nombre]
             .filter(Boolean).join(' ');
@@ -462,7 +464,8 @@ app.get('/api/maestro/:nocontrol', async (req, res) => {
                 nombre: nombreCompleto,
                 correo: maestro.correo,
                 telefono: maestro.telefono,
-                gradoEstudio: maestro.ultimoGrado_estudios
+                gradoEstudio: maestro.ultimoGrado_estudios,
+                is_tutor: !!tutor
             }
         });
     } catch (error) {
@@ -535,7 +538,6 @@ app.post('/api/register/tutor_maestro',
                         await knex('Tutorias').insert({
                             idtutor: tutorId,
                             idclases: materiaRow.idclases,
-                            tema_especifico: 'Tutoría general',
                             fecha_hora: new Date().toISOString(),
                             estado: 'Disponible'
                         });
@@ -565,7 +567,18 @@ app.get('/api/alumnos/:nocontrol', async (req, res) => {
             if (clave && String(alumno.clave) !== String(clave)) {
                 return res.status(401).json({ success: false, message: 'Clave incorrecta' });
             }
-            res.json({ success: true, data: alumno });
+            
+            const asesorado = await knex('Asesorados').where({ idalumnos: alumno.idalumnos }).first();
+            const tutor = await knex('Tutores').where({ idalumnos: alumno.idalumnos }).first();
+            
+            res.json({ 
+                success: true, 
+                data: { 
+                    ...alumno, 
+                    is_asesorado: !!asesorado, 
+                    is_tutor: !!tutor 
+                } 
+            });
         } else {
             res.status(404).json({ success: false, message: 'Alumno no encontrado' });
         }
@@ -631,7 +644,7 @@ app.get('/api/tutorias', async (req, res) => {
                 knex.raw("COALESCE(Maestro.nombre || ' ' || Maestro.apellidopat, Alumnos.nombre || ' ' || Alumnos.apellidopat) as tutor_nombre")
             );
 
-        // Apply filtering if the user is logged in as asesorado
+        // Apply filtering depending on role
         const token = req.cookies.token;
         if (token) {
             try {
@@ -642,6 +655,16 @@ app.get('/api/tutorias', async (req, res) => {
                         tutoriasQuery = tutoriasQuery
                             .where('Materias.idlicenciaturas', alumno.idlicenciaturas)
                             .andWhere('Materias.semestre', alumno.semestre);
+                    }
+                } else if (decoded.role === 'tutor') {
+                    let tutor;
+                    if (decoded.isMaestro) {
+                        tutor = await knex('Tutores').where({ idmaestro: decoded.id }).first();
+                    } else {
+                        tutor = await knex('Tutores').where({ idalumnos: decoded.id }).first();
+                    }
+                    if (tutor) {
+                        tutoriasQuery = tutoriasQuery.where('Tutorias.idtutor', tutor.idTutores);
                     }
                 }
             } catch (err) {}
@@ -685,11 +708,13 @@ app.get('/api/me', async (req, res) => {
 
         let materiasInteresStr = '';
         let materiasSemestre = [];
+        let urlFotoPerfil = null;
 
         if (role === 'asesorado') {
             const asesorado = await knex('Asesorados').where({ idalumnos: userId }).first();
             if (asesorado) {
                 materiasInteresStr = asesorado.materias;
+                urlFotoPerfil = asesorado.url_foto_perfil;
             }
         } else if (role === 'tutor') {
             let tutor;
@@ -700,6 +725,7 @@ app.get('/api/me', async (req, res) => {
             }
             if (tutor) {
                 materiasInteresStr = tutor.materias;
+                urlFotoPerfil = tutor.url_foto_perfil;
             }
         }
 
@@ -729,13 +755,80 @@ app.get('/api/me', async (req, res) => {
         res.json({
             success: true,
             data: {
-                user: { ...userInfo, role, isMaestro },
+                user: { ...userInfo, role, isMaestro, url_foto_perfil: urlFotoPerfil },
                 materias_interes: materiasInteresStr ? materiasInteresStr.split(',') : [],
                 materias_semestre: materiasSemestre
             }
         });
     } catch (error) {
         console.error("Error al obtener perfil:", error);
+        res.status(500).json({ success: false, message: 'Error interno en el servidor' });
+    }
+});
+
+app.put('/api/me/tutor/materias', async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const role = req.user.role;
+        const isMaestro = req.user.isMaestro;
+
+        if (role !== 'tutor') {
+            return res.status(403).json({ success: false, message: 'Acceso denegado' });
+        }
+
+        const { materias } = req.body;
+        if (!Array.isArray(materias)) {
+            return res.status(400).json({ success: false, message: 'Las materias deben ser un arreglo' });
+        }
+
+        let tutor;
+        if (isMaestro) {
+            tutor = await knex('Tutores').where({ idmaestro: userId }).first();
+        } else {
+            tutor = await knex('Tutores').where({ idalumnos: userId }).first();
+        }
+
+        if (!tutor) {
+            return res.status(404).json({ success: false, message: 'Tutor no encontrado' });
+        }
+
+        const materiasStr = materias.join(',');
+        await knex('Tutores').where({ idTutores: tutor.idTutores }).update({ materias: materiasStr });
+
+        // Sincronizar Tutorias
+        const oldMaterias = tutor.materias ? tutor.materias.split(',') : [];
+        const addedMaterias = materias.filter(m => !oldMaterias.includes(m));
+        const removedMaterias = oldMaterias.filter(m => !materias.includes(m));
+
+        // Insert new ones
+        for (const claveMateria of addedMaterias) {
+            const materiaRow = await knex('Materias').where({ clave: claveMateria }).first();
+            if (materiaRow) {
+                const tutoriaExistente = await knex('Tutorias').where({ idtutor: tutor.idTutores, idclases: materiaRow.idclases }).first();
+                if (!tutoriaExistente) {
+                    await knex('Tutorias').insert({
+                        idtutor: tutor.idTutores,
+                        idclases: materiaRow.idclases,
+                        fecha_hora: new Date().toISOString(),
+                        estado: 'Disponible'
+                    });
+                }
+            }
+        }
+
+        // Delete removed ones (only if estado is 'Disponible')
+        for (const claveMateria of removedMaterias) {
+            const materiaRow = await knex('Materias').where({ clave: claveMateria }).first();
+            if (materiaRow) {
+                await knex('Tutorias')
+                    .where({ idtutor: tutor.idTutores, idclases: materiaRow.idclases, estado: 'Disponible' })
+                    .del();
+            }
+        }
+
+        res.json({ success: true, message: 'Materias actualizadas exitosamente' });
+    } catch (error) {
+        console.error("Error al actualizar materias del tutor:", error);
         res.status(500).json({ success: false, message: 'Error interno en el servidor' });
     }
 });

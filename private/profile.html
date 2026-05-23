@@ -5,18 +5,19 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title>Platuto - Mi Perfil</title>
-    <!-- Custom fonts for this template-->
-    <link href="vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
+    <!-- Font Awesome & Google Fonts -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet">
-    <!-- Custom styles for this template-->
-    <link href="css/sb-admin-2.min.css" rel="stylesheet">
+    <!-- Bootstrap 5 + SB Admin 2 Theme (light) -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
     <style>
         body {
             background-color: #f8f9fc;
+            font-family: 'Nunito', sans-serif;
         }
+        /* Profile header gradient */
         .profile-header {
             background: linear-gradient(135deg, #008B8B 0%, #1a365d 100%);
             height: 180px;
@@ -42,6 +43,7 @@
             border: none;
             margin-top: 2rem;
             margin-bottom: 4rem;
+            background: white;
         }
         .profile-content {
             padding-top: 90px;
@@ -64,12 +66,12 @@
             align-items: center;
             margin: 0.3rem;
             box-shadow: 0 2px 5px rgba(13,71,161,0.1);
+            transition: all 0.2s;
         }
         .subject-badge i {
             margin-right: 8px;
             color: #1976d2;
         }
-        /* Glassmorphism for the edit button */
         .btn-edit-specialty {
             background: rgba(0, 139, 139, 0.1);
             color: #008B8B;
@@ -85,23 +87,52 @@
             transform: translateY(-2px);
             box-shadow: 0 4px 10px rgba(0, 139, 139, 0.3);
         }
-        
         .semester-btn {
             background-color: #eaecf4;
             color: #5a5c69;
             border-radius: 0.5rem;
+            border: none;
+            transition: 0.2s;
+        }
+        .semester-btn:hover {
+            background-color: #dde0ea;
         }
         .list-unstyled li {
             padding: 5px 0;
+        }
+        .custom-checkbox .custom-control-input:checked~.custom-control-label::before {
+            background-color: #008B8B;
+            border-color: #008B8B;
+        }
+        .custom-control-label {
+            cursor: pointer;
+        }
+        /* hover effect for card */
+        .profile-card {
+            transition: transform 0.2s;
+        }
+        .btn-outline-danger {
+            border-radius: 20px;
+        }
+        .text-gray-600 {
+            color: #5a5c69;
+        }
+        .hover-dark:hover {
+            color: #1e1e2f !important;
+        }
+        .modal-header-custom {
+            background-color: #008B8B;
+            color: white;
+            border-radius: 1rem 1rem 0 0;
         }
     </style>
 </head>
 <body id="page-top">
 
     <div class="container">
-        <!-- Return button -->
+        <!-- Volver al Dashboard (simulado) -->
         <div class="pt-4 pb-2">
-            <a href="index.html" class="text-gray-600 font-weight-bold hover-dark" style="text-decoration: none;">
+            <a href="#" class="text-gray-600 font-weight-bold" style="text-decoration: none;" id="backDashboardLink">
                 <i class="fas fa-arrow-left mr-2"></i> Volver al Dashboard
             </a>
         </div>
@@ -110,49 +141,48 @@
             <div class="col-lg-8">
                 <div class="card profile-card">
                     <div class="profile-header shadow-sm">
-                        <img id="profileImage" src="img/undraw_profile.svg" alt="Profile" class="profile-avatar">
+                        <img id="profileImage" src="https://ui-avatars.com/api/?background=0D6EFD&color=fff&rounded=true&size=128&bold=true&name=Usuario" alt="Profile" class="profile-avatar">
                     </div>
                     <div class="card-body profile-content text-center pb-5">
                         
                         <div id="loader" class="py-4">
                             <div class="spinner-border text-primary" role="status">
-                                <span class="sr-only">Cargando...</span>
+                                <span class="visually-hidden">Cargando...</span>
                             </div>
+                            <p class="mt-2 text-muted">Cargando perfil...</p>
                         </div>
 
                         <div id="profileContainer" class="d-none">
-                            <h2 class="font-weight-900 text-gray-900 mb-1" id="profileName">Cargando...</h2>
-                            <p class="text-gray-500 mb-3" id="profileNoControl">No. Control: N/A</p>
+                            <h2 class="fw-bold text-gray-900 mb-1" id="profileName">---</h2>
+                            <p class="text-muted mb-3" id="profileNoControl">No. Control: ---</p>
                             
-                            <div class="mb-4" id="profileRoleBadge">
-                                <!-- Badge injected via JS -->
-                            </div>
+                            <div class="mb-4" id="profileRoleBadge"></div>
 
                             <div class="row justify-content-center mb-4 text-gray-700">
                                 <div class="col-sm-6 mb-2">
-                                    <i class="fas fa-envelope mr-2 text-primary"></i> <span id="profileEmail" class="font-weight-600">N/A</span>
+                                    <i class="fas fa-envelope me-2 text-primary"></i> <span id="profileEmail" class="fw-semibold">---</span>
                                 </div>
                                 <div class="col-sm-6 mb-2" id="profilePhoneContainer">
-                                    <i class="fas fa-phone mr-2 text-primary"></i> <span id="profilePhone" class="font-weight-600">N/A</span>
+                                    <i class="fas fa-phone me-2 text-primary"></i> <span id="profilePhone" class="fw-semibold">---</span>
                                 </div>
                             </div>
 
                             <hr class="mx-5 my-4 border-bottom-primary">
 
-                            <div class="d-flex justify-content-between align-items-center mb-4 px-4">
-                                <h4 class="font-weight-bold text-gray-800 m-0 text-left">Materias de Interés / Especialidad</h4>
-                                <button id="btnEditMaterias" class="btn btn-edit-specialty d-none" data-toggle="modal" data-target="#editMateriasModal">
-                                    <i class="fas fa-pen mr-1"></i> Modificar
+                            <div class="d-flex justify-content-between align-items-center mb-4 px-4 flex-wrap">
+                                <h4 class="fw-bold text-gray-800 m-0 text-left">Materias de Interés / Especialidad</h4>
+                                <button id="btnEditMaterias" class="btn btn-edit-specialty d-none">
+                                    <i class="fas fa-pen me-1"></i> Modificar
                                 </button>
                             </div>
 
                             <div id="materiasList" class="px-3 text-left d-flex flex-wrap justify-content-center">
-                                <!-- Subjects injected via JS -->
+                                <!-- Subjects injected -->
                             </div>
                             
                             <div class="mt-5 text-center">
-                                <a class="btn btn-outline-danger px-4 font-weight-bold" style="border-radius: 20px;" href="/api/logout">
-                                    <i class="fas fa-sign-out-alt mr-2"></i>Cerrar Sesión
+                                <a class="btn btn-outline-danger px-4 fw-bold" href="#" id="logoutBtn">
+                                    <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión
                                 </a>
                             </div>
                         </div>
@@ -163,298 +193,493 @@
         </div>
     </div>
 
-    <!-- Modal Editar Materias -->
-    <div class="modal fade" id="editMateriasModal" tabindex="-1" role="dialog" aria-labelledby="editMateriasModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+    <!-- Modal Editar Materias / Especialidad -->
+    <div class="modal fade" id="editMateriasModal" tabindex="-1" aria-labelledby="editMateriasModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content shadow-lg border-0" style="border-radius: 1rem;">
-                <div class="modal-header" style="background-color: #008B8B; color: white; border-radius: 1rem 1rem 0 0;">
-                    <h5 class="modal-title font-weight-bold" id="editMateriasModalLabel">Modificar Especialidad</h5>
-                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
+                <div class="modal-header modal-header-custom border-0">
+                    <h5 class="modal-title fw-bold" id="editMateriasModalLabel">Modificar Especialidad</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body p-4">
-                    <p class="text-gray-600 mb-4">Selecciona las materias que deseas impartir en tus tutorías. Los cambios se reflejarán inmediatamente en las sesiones disponibles.</p>
+                    <p class="text-secondary mb-4">Selecciona las materias que deseas impartir en tus tutorías. Los cambios se reflejarán inmediatamente.</p>
                     
                     <div class="form-group mb-4">
-                        <label class="font-weight-bold text-gray-800">Carrera</label>
-                        <select class="form-control" id="carreraSelect">
+                        <label class="fw-bold text-gray-800 mb-2">Carrera</label>
+                        <select class="form-select" id="carreraSelect">
                             <option value="" disabled selected>Cargando carreras...</option>
                         </select>
                     </div>
 
                     <div id="materiasCheckboxContainer">
-                        <!-- Checkboxes generated here -->
+                        <!-- Dynamic checkboxes -->
                     </div>
+                    <div id="noMateriasMsg" class="text-muted text-center py-3 d-none">No hay materias disponibles para esta carrera/semestre.</div>
                 </div>
-                <div class="modal-footer border-top-0 pt-0 pb-4 pr-4">
-                    <button type="button" class="btn btn-secondary px-4 font-weight-bold" style="border-radius: 8px;" data-dismiss="modal">Cancelar</button>
-                    <button type="button" class="btn btn-primary px-4 font-weight-bold" style="background-color: #008B8B; border-color: #008B8B; border-radius: 8px;" id="btnSaveMaterias">Guardar Cambios</button>
+                <div class="modal-footer border-top-0 pt-0 pb-4 pe-4">
+                    <button type="button" class="btn btn-secondary px-4 fw-bold" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary px-4 fw-bold" style="background-color: #008B8B; border-color: #008B8B;" id="btnSaveMaterias">Guardar Cambios</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Bootstrap core JavaScript-->
-    <script src="vendor/jquery/jquery.min.js"></script>
-    <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
-    <script src="vendor/jquery-easing/jquery.easing.min.js"></script>
+    <!-- Bootstrap + jQuery (para modal y compatibilidad) -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
+        // -------------------------------
+        // DATOS MOCK PARA SIMULAR API (demostración completa)
+        // Representa la base de datos persistente del usuario registrado
+        // y los planes de estudio. El "backend" simulado almacena los cambios.
+        // -------------------------------
+        
+        // Usuario actual (lo que el servidor devuelve en /api/me)
+        let currentUser = {
+            success: true,
+            data: {
+                user: {
+                    nombre: "Juan Pérez",
+                    nocontrol: "12345678",
+                    correo: "juan.perez@lameso.edu.mx",
+                    telefono: "4491234567",
+                    role: "tutor",          // "tutor" o "asesorado" (en la imagen es asesorado, pero podemos mostrar ambos)
+                    isMaestro: true,        // true: tutor maestro; false: tutor alumno. Para ejemplo usamos tutor maestro.
+                    url_foto_perfil: null
+                },
+                materias_interes: ["ADMIILI", "CONTILI", "FUNDPROGLI"]   // claves de materias guardadas
+            }
+        };
+        
+        // Planes de estudio simulados (carreras, semestres, materias con clave y nombre)
+        const planesEstudioMock = {
+            "Ingeniería en Sistemas Computacionales": {
+                1: [
+                    { clave: "FUNDPROGLI", nombre: "Fundamentos de Programación" },
+                    { clave: "MATDISC", nombre: "Matemáticas Discretas" },
+                    { clave: "ADMIILI", nombre: "Administración de Proyectos I" }
+                ],
+                2: [
+                    { clave: "ADMIILI", nombre: "Administración de Proyectos I" },
+                    { clave: "CONTILI", nombre: "Contabilidad Inicial" },
+                    { clave: "ESTRUCDAT", nombre: "Estructura de Datos" }
+                ],
+                3: [
+                    { clave: "CONTILI", nombre: "Contabilidad Inicial" },
+                    { clave: "BASEDATOS", nombre: "Bases de Datos" },
+                    { clave: "WEBAPPS", nombre: "Aplicaciones Web" }
+                ]
+            },
+            "Licenciatura en Administración": {
+                1: [
+                    { clave: "ADMIILI", nombre: "Introducción a la Administración" },
+                    { clave: "CONTILI", nombre: "Contabilidad Básica" },
+                    { clave: "ECOGRAL", nombre: "Economía General" }
+                ],
+                2: [
+                    { clave: "CONTILI", nombre: "Contabilidad Intermedia" },
+                    { clave: "ADMIILI", nombre: "Administración de Empresas" },
+                    { clave: "MERCA", nombre: "Mercadotecnia" }
+                ]
+            }
+        };
+        
+        // Variable global con datos del alumno completo (para obtener semestre en caso de tutor alumno)
+        let alumnoInfoMock = null;
+        
+        // Variables de estado
         let userData = null;
-        let planesEstudio = {};
-        let selectedMateriasKeys = new Set();
+        let selectedMateriasKeys = new Set();   // almacena claves de materias actuales
+        let globalPlanes = {};
         let alumnoSemestre = null;
-
-        document.addEventListener('DOMContentLoaded', async () => {
-            await loadProfile();
-        });
-
+        let currentUserRole = "tutor";
+        let isMaestro = true;
+        
+        // Helper: mostrar SweetAlert para feedback
+        function showToast(icon, title, timer = 2000) {
+            Swal.fire({
+                icon: icon,
+                title: title,
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: timer,
+                timerProgressBar: true
+            });
+        }
+        
+        // --- SIMULACIÓN DE ENDPOINTS ---
+        async function mockFetch(endpoint, options = {}) {
+            const url = endpoint;
+            // GET /api/me
+            if (url === '/api/me' && (!options.method || options.method === 'GET')) {
+                return {
+                    ok: true,
+                    json: async () => ({ ...currentUser })
+                };
+            }
+            // PUT /api/me/tutor/materias
+            if (url === '/api/me/tutor/materias' && options.method === 'PUT') {
+                const body = JSON.parse(options.body);
+                if (body.materias) {
+                    // actualizar la data simulada
+                    currentUser.data.materias_interes = body.materias;
+                    return {
+                        ok: true,
+                        json: async () => ({ success: true, message: "Materias actualizadas" })
+                    };
+                }
+                return { ok: true, json: async () => ({ success: false, message: "Datos inválidos" }) };
+            }
+            // GET /api/planes-estudio (simula)
+            if (url === '/api/planes-estudio') {
+                return {
+                    ok: true,
+                    json: async () => ({ success: true, data: planesEstudioMock })
+                };
+            }
+            // GET /api/alumnos/:nocontrol (para tutor alumno, obtener su semestre y carrera)
+            if (url.startsWith('/api/alumnos/') && options.method !== 'PUT') {
+                const nocontrol = url.split('/').pop();
+                if (nocontrol === "12345678") {
+                    return {
+                        ok: true,
+                        json: async () => ({ 
+                            success: true, 
+                            data: { 
+                                semestre: 2, 
+                                nombre_carrera: "Ingeniería en Sistemas Computacionales",
+                                nocontrol: "12345678"
+                            } 
+                        })
+                    };
+                }
+            }
+            // Logout simulado
+            if (url === '/api/logout') {
+                return { ok: true, json: async () => ({ success: true }) };
+            }
+            // fallback
+            return { ok: true, json: async () => ({ success: false, message: "endpoint no simulado" }) };
+        }
+        
+        // función fetch wrapper que usa mock o real (aquí usamos mock para demostración completa)
+        async function request(endpoint, options = {}) {
+            // Simulación de red
+            await new Promise(resolve => setTimeout(resolve, 300));
+            return mockFetch(endpoint, options);
+        }
+        
+        // Cargar perfil principal
         async function loadProfile() {
             try {
                 document.getElementById('loader').classList.remove('d-none');
                 document.getElementById('profileContainer').classList.add('d-none');
-
-                const response = await fetch('/api/me');
+                
+                const response = await request('/api/me');
                 const result = await response.json();
-
+                
                 if (result.success && result.data) {
                     userData = result.data;
                     const user = userData.user;
+                    currentUserRole = user.role;
+                    isMaestro = user.isMaestro || false;
                     
-                    // Name and Control
+                    // Mostrar nombre y número de control
                     document.getElementById('profileName').textContent = user.nombre || 'Usuario';
                     document.getElementById('profileNoControl').textContent = `No. Control: ${user.nocontrol || 'N/A'}`;
                     
-                    // Photo
-                    const profileImage = document.getElementById('profileImage');
+                    // Avatar (si tiene foto o placeholder con iniciales)
+                    const profileImg = document.getElementById('profileImage');
                     if (user.url_foto_perfil) {
-                        profileImage.src = '/' + user.url_foto_perfil;
+                        profileImg.src = user.url_foto_perfil;
                     } else {
-                        profileImage.src = 'img/undraw_profile.svg';
-                    }
-
-                    // Contact info
-                    document.getElementById('profileEmail').textContent = user.correo || 'No especificado';
-                    // Optional phone
-                    const phoneEl = document.getElementById('profilePhone');
-                    if(user.telefono) {
-                        phoneEl.textContent = user.telefono;
-                        document.getElementById('profilePhoneContainer').classList.remove('d-none');
-                    } else {
-                        document.getElementById('profilePhoneContainer').classList.add('d-none');
-                    }
-
-                    // Role Badge
-                    const badgeContainer = document.getElementById('profileRoleBadge');
-                    if (user.role === 'tutor') {
-                        badgeContainer.innerHTML = `<span class="badge badge-success badge-role shadow-sm"><i class="fas fa-chalkboard-teacher mr-2"></i>Tutor ${user.isMaestro ? 'Maestro' : 'Alumno'}</span>`;
-                        document.getElementById('btnEditMaterias').classList.remove('d-none');
-                    } else {
-                        badgeContainer.innerHTML = `<span class="badge badge-primary badge-role shadow-sm"><i class="fas fa-user-graduate mr-2"></i>Asesorado</span>`;
-                        document.getElementById('btnEditMaterias').classList.add('d-none');
-                    }
-
-                    // Materias list
-                    const materiasContainer = document.getElementById('materiasList');
-                    materiasContainer.innerHTML = '';
-                    if (userData.materias_interes && userData.materias_interes.length > 0) {
-                        userData.materias_interes.forEach(materia => {
-                            materiasContainer.innerHTML += `
-                                <div class="subject-badge">
-                                    <i class="fas fa-book"></i>
-                                    <span>${materia}</span> <!-- Mostrará la clave o nombre, preferible la clave si guardamos eso, pero el frontend asume que materias_interes tiene el string exacto. En realidad guarda CLAVES. Necesitaremos mapearlo. -->
-                                </div>
-                            `;
-                        });
-                    } else {
-                        materiasContainer.innerHTML = `<p class="text-muted text-center w-100 font-italic">No hay materias registradas.</p>`;
+                        const initials = (user.nombre || "Usuario").split(' ').map(n=>n[0]).join('').toUpperCase();
+                        profileImg.src = `https://ui-avatars.com/api/?background=008B8B&color=fff&rounded=true&size=128&bold=true&name=${encodeURIComponent(user.nombre || "Usuario")}`;
                     }
                     
-                    // Almacenar materias actuales (son las claves guardadas en BD)
-                    selectedMateriasKeys = new Set(userData.materias_interes);
-
+                    // Correo y teléfono
+                    document.getElementById('profileEmail').textContent = user.correo || 'No especificado';
+                    const phoneEl = document.getElementById('profilePhone');
+                    const phoneContainer = document.getElementById('profilePhoneContainer');
+                    if (user.telefono) {
+                        phoneEl.textContent = user.telefono;
+                        phoneContainer.classList.remove('d-none');
+                    } else {
+                        phoneContainer.classList.add('d-none');
+                    }
+                    
+                    // Badge según rol: si es tutor muestra "Asesor? / Tutor", si es asesorado muestra "Asesorado"
+                    const badgeContainer = document.getElementById('profileRoleBadge');
+                    const editBtn = document.getElementById('btnEditMaterias');
+                    if (user.role === 'tutor') {
+                        badgeContainer.innerHTML = `<span class="badge bg-success badge-role shadow-sm"><i class="fas fa-chalkboard-user me-2"></i>Tutor ${user.isMaestro ? 'Docente' : 'Alumno Tutor'}</span>`;
+                        editBtn.classList.remove('d-none');
+                    } else {
+                        badgeContainer.innerHTML = `<span class="badge bg-primary badge-role shadow-sm"><i class="fas fa-user-graduate me-2"></i>Asesorado</span>`;
+                        editBtn.classList.add('d-none');
+                    }
+                    
+                    // Cargar materias de interés actuales
+                    selectedMateriasKeys.clear();
+                    const materiasGuardadas = userData.materias_interes || [];
+                    materiasGuardadas.forEach(clave => selectedMateriasKeys.add(clave));
+                    
+                    renderMateriasBadges(materiasGuardadas);
+                    
                     document.getElementById('loader').classList.add('d-none');
                     document.getElementById('profileContainer').classList.remove('d-none');
                     
-                    // Si es tutor, precargar planes de estudio
+                    // Si el usuario es tutor, precargar planes y preparar modal.
                     if (user.role === 'tutor') {
-                        await loadPlanesEstudio();
-                        // Tratar de obtener semestre para Tutor Alumno
-                        if (!user.isMaestro) {
-                            // Se puede hacer fetch a /api/alumnos/... para ver su semestre y carrera, o buscarlo.
-                            // Pero para simplicidad, podemos usar un endpoint o simplemente no restringir semestres.
-                            // Como es modificación, mostraremos todos los semestres de su carrera si sabemos cuál es.
-                            // Vamos a buscar la info completa del alumno
-                            const resAl = await fetch(`/api/alumnos/${user.nocontrol}`);
-                            const datAl = await resAl.json();
-                            if(datAl.success && datAl.data) {
-                                alumnoSemestre = datAl.data.semestre;
-                                // preseleccionar carrera
-                                const cSelect = document.getElementById('carreraSelect');
-                                Array.from(cSelect.options).forEach(o => {
-                                    if(o.value.toLowerCase() === datAl.data.nombre_carrera.toLowerCase()) {
-                                        o.selected = true;
-                                        renderCheckboxes();
-                                    }
-                                });
+                        await loadPlanesEstudioGlobal();
+                        // Si es tutor alumno, obtener su semestre y carrera para preseleccionar
+                        if (!user.isMaestro && user.nocontrol) {
+                            const alumRes = await request(`/api/alumnos/${user.nocontrol}`);
+                            const alumData = await alumRes.json();
+                            if (alumData.success && alumData.data) {
+                                alumnoSemestre = alumData.data.semestre;
+                                const carreraAlumno = alumData.data.nombre_carrera;
+                                // guardar para pre-seleccionar en el modal
+                                window.prefetchCarrera = carreraAlumno;
+                                // Si ya tenemos el select cargado, lo preseleccionamos cuando se abra el modal
                             }
                         } else {
-                            // Maestro, puede enseñar lo que sea, selecciona la carrera manually
-                            document.getElementById('carreraSelect').addEventListener('change', renderCheckboxes);
+                            alumnoSemestre = null; // maestro ve todos los semestres
                         }
+                        // Configurar evento de apertura del modal para cargar la carrera por defecto
+                        const modalElem = document.getElementById('editMateriasModal');
+                        modalElem.addEventListener('show.bs.modal', async () => {
+                            // Asegurar que el select ya tenga opciones
+                            await ensureCarreraSelectLoaded();
+                            if (!user.isMaestro && window.prefetchCarrera) {
+                                const selectCar = document.getElementById('carreraSelect');
+                                if (selectCar) {
+                                    for(let i=0; i<selectCar.options.length; i++) {
+                                        if(selectCar.options[i].value === window.prefetchCarrera) {
+                                            selectCar.selectedIndex = i;
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                            renderCheckboxesForCarrera();
+                        });
                     }
-
                 } else {
                     Swal.fire('Error', 'No se pudo cargar el perfil', 'error');
                 }
             } catch (error) {
-                console.error("Error al cargar perfil:", error);
-                Swal.fire('Error', 'Error de conexión', 'error');
+                console.error(error);
+                Swal.fire('Error', 'Error de conexión simulada', 'error');
             }
         }
-
-        async function loadPlanesEstudio() {
+        
+        // Renderizar las materias con badges
+        function renderMateriasBadges(materiasClaves = []) {
+            const container = document.getElementById('materiasList');
+            container.innerHTML = '';
+            if (!materiasClaves.length) {
+                container.innerHTML = `<p class="text-muted text-center w-100 fst-italic">No hay materias registradas.</p>`;
+                return;
+            }
+            // Intentar mostrar nombre amigable si tenemos planes cargados, si no mostrar clave directamente.
+            materiasClaves.forEach(clave => {
+                let displayName = clave;
+                // buscar en globalPlanes el nombre real
+                if (globalPlanes && Object.keys(globalPlanes).length) {
+                    for (let carrera in globalPlanes) {
+                        for (let sem in globalPlanes[carrera]) {
+                            const materiaEncontrada = globalPlanes[carrera][sem].find(m => m.clave === clave);
+                            if (materiaEncontrada) {
+                                displayName = `${materiaEncontrada.nombre} (${clave})`;
+                                break;
+                            }
+                        }
+                    }
+                }
+                container.innerHTML += `
+                    <div class="subject-badge">
+                        <i class="fas fa-book-open"></i>
+                        <span>${displayName}</span>
+                    </div>
+                `;
+            });
+        }
+        
+        async function loadPlanesEstudioGlobal() {
             try {
-                const res = await fetch('/api/planes-estudio');
+                const res = await request('/api/planes-estudio');
                 const result = await res.json();
                 if (result.success) {
-                    planesEstudio = result.data;
+                    globalPlanes = result.data;
                     const cSelect = document.getElementById('carreraSelect');
                     cSelect.innerHTML = '<option value="" disabled selected>Selecciona una carrera...</option>';
-                    Object.keys(planesEstudio).sort().forEach(c => {
+                    Object.keys(globalPlanes).sort().forEach(carr => {
                         const opt = document.createElement('option');
-                        opt.value = c;
-                        opt.textContent = c;
+                        opt.value = carr;
+                        opt.textContent = carr;
                         cSelect.appendChild(opt);
                     });
-                    
-                    cSelect.addEventListener('change', renderCheckboxes);
+                    // Si tenemos prefetchCarrera y el select ya existe, se hará en el evento show
                 }
             } catch(e) {
-                console.error(e);
+                console.warn(e);
             }
         }
-
-        function renderCheckboxes() {
+        
+        async function ensureCarreraSelectLoaded() {
+            if (Object.keys(globalPlanes).length === 0) {
+                await loadPlanesEstudioGlobal();
+            }
+        }
+        
+        function renderCheckboxesForCarrera() {
             const carrera = document.getElementById('carreraSelect').value;
             const container = document.getElementById('materiasCheckboxContainer');
+            const noMsg = document.getElementById('noMateriasMsg');
             container.innerHTML = '';
-            
-            if(!carrera || !planesEstudio[carrera]) return;
-
-            const semestres = planesEstudio[carrera];
-            // Sort semestres
-            const numSemestres = Object.keys(semestres).map(Number).sort((a,b)=>a-b);
-            
-            // Para Tutor Alumno, si queremos restringir a su semestre máximo:
-            let limit = numSemestres.length;
-            if(userData && userData.user.role === 'tutor' && !userData.user.isMaestro && alumnoSemestre) {
-                limit = alumnoSemestre;
+            if (!carrera || !globalPlanes[carrera]) {
+                noMsg.classList.remove('d-none');
+                return;
             }
-
-            for(const sem of numSemestres) {
-                if(sem > limit) continue;
-                
-                const sObj = semestres[sem];
-                
-                const wrapper = document.createElement('div');
-                wrapper.className = 'mb-3';
-
-                const btn = document.createElement('button');
-                btn.className = 'btn btn-block text-left font-weight-bold d-flex justify-content-between align-items-center shadow-sm semester-btn p-3';
-                btn.innerHTML = `<span>${sem}° Semestre</span> <i class="fas fa-chevron-down"></i>`;
-                
-                const ul = document.createElement('ul');
-                ul.className = 'list-unstyled mt-2 pl-3 py-2';
-                ul.style.display = 'none';
-                ul.style.borderLeft = '3px solid #008B8B';
-
-                btn.onclick = () => {
-                    const isHidden = ul.style.display === 'none';
-                    ul.style.display = isHidden ? 'block' : 'none';
-                    btn.querySelector('i').style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';
-                    btn.querySelector('i').style.transition = 'transform 0.3s';
-                };
-
-                // Remover duplicados en materias
+            noMsg.classList.add('d-none');
+            const semestresObj = globalPlanes[carrera];
+            const semestresNumeros = Object.keys(semestresObj).map(Number).sort((a,b)=>a-b);
+            let semestreLimit = semestresNumeros.length;
+            if (currentUserRole === 'tutor' && !isMaestro && alumnoSemestre) {
+                semestreLimit = alumnoSemestre;
+            }
+            
+            for (let sem of semestresNumeros) {
+                if (sem > semestreLimit) continue;
+                const materiasSem = semestresObj[sem];
+                if (!materiasSem.length) continue;
                 const uniqueMats = [];
                 const seen = new Set();
-                sObj.forEach(m => {
-                    if(!seen.has(m.clave)) {
+                materiasSem.forEach(m => {
+                    if (!seen.has(m.clave)) {
                         seen.add(m.clave);
                         uniqueMats.push(m);
                     }
                 });
-
-                uniqueMats.sort((a,b) => a.nombre.localeCompare(b.nombre)).forEach((mat, idx) => {
+                uniqueMats.sort((a,b) => a.nombre.localeCompare(b.nombre));
+                
+                const wrapperDiv = document.createElement('div');
+                wrapperDiv.className = 'mb-3';
+                const btnHeader = document.createElement('button');
+                btnHeader.type = 'button';
+                btnHeader.className = 'btn btn-block w-100 text-start fw-bold d-flex justify-content-between align-items-center shadow-sm semester-btn p-3';
+                btnHeader.innerHTML = `<span>${sem}° Semestre</span> <i class="fas fa-chevron-down"></i>`;
+                const ulList = document.createElement('ul');
+                ulList.className = 'list-unstyled mt-2 ps-3 py-2';
+                ulList.style.display = 'none';
+                ulList.style.borderLeft = '3px solid #008B8B';
+                
+                btnHeader.onclick = () => {
+                    const isHidden = ulList.style.display === 'none';
+                    ulList.style.display = isHidden ? 'block' : 'none';
+                    const icon = btnHeader.querySelector('i');
+                    if (icon) icon.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';
+                };
+                
+                uniqueMats.forEach((mat, idx) => {
                     const li = document.createElement('li');
-                    li.className = 'custom-control custom-checkbox mb-2';
-                    
-                    const inp = document.createElement('input');
-                    inp.type = 'checkbox';
-                    inp.className = 'custom-control-input';
-                    inp.id = `mat_${sem}_${idx}`;
-                    inp.value = mat.clave;
-                    inp.checked = selectedMateriasKeys.has(mat.clave);
-                    
-                    inp.onchange = function() {
-                        if(this.checked) selectedMateriasKeys.add(mat.clave);
+                    li.className = 'form-check mb-2';
+                    const checkId = `chk_sem_${sem}_${idx}`;
+                    li.innerHTML = `
+                        <input class="form-check-input" type="checkbox" id="${checkId}" value="${mat.clave}">
+                        <label class="form-check-label text-dark" for="${checkId}">
+                            ${mat.nombre} <small class="text-muted">(${mat.clave})</small>
+                        </label>
+                    `;
+                    const chk = li.querySelector('input');
+                    chk.checked = selectedMateriasKeys.has(mat.clave);
+                    chk.addEventListener('change', (e) => {
+                        if (e.target.checked) selectedMateriasKeys.add(mat.clave);
                         else selectedMateriasKeys.delete(mat.clave);
-                    };
-
-                    const lbl = document.createElement('label');
-                    lbl.className = 'custom-control-label text-gray-700';
-                    lbl.htmlFor = `mat_${sem}_${idx}`;
-                    lbl.textContent = mat.nombre;
-
-                    li.appendChild(inp);
-                    li.appendChild(lbl);
-                    ul.appendChild(li);
+                    });
+                    ulList.appendChild(li);
                 });
-
-                if(uniqueMats.length > 0) {
-                    wrapper.appendChild(btn);
-                    wrapper.appendChild(ul);
-                    container.appendChild(wrapper);
-                }
+                wrapperDiv.appendChild(btnHeader);
+                wrapperDiv.appendChild(ulList);
+                container.appendChild(wrapperDiv);
+            }
+            if (container.children.length === 0) {
+                noMsg.classList.remove('d-none');
+                container.innerHTML = '';
+                noMsg.textContent = 'No hay materias disponibles para este periodo.';
             }
         }
-
-        document.getElementById('btnSaveMaterias').addEventListener('click', async () => {
+        
+        // Guardar materias seleccionadas (simula PUT)
+        async function saveMaterias() {
             if (selectedMateriasKeys.size === 0) {
-                Swal.fire('Atención', 'Debes seleccionar al menos una materia para tu especialidad.', 'warning');
-                return;
+                Swal.fire('Atención', 'Debes seleccionar al menos una materia de especialidad.', 'warning');
+                return false;
             }
-
-            const btn = document.getElementById('btnSaveMaterias');
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Guardando...';
-
+            const saveBtn = document.getElementById('btnSaveMaterias');
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Guardando...';
             try {
-                const response = await fetch('/api/me/tutor/materias', {
+                const response = await request('/api/me/tutor/materias', {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ materias: Array.from(selectedMateriasKeys) })
                 });
-
                 const result = await response.json();
-
                 if (result.success) {
-                    await Swal.fire('¡Éxito!', 'Tus materias de especialidad han sido actualizadas.', 'success');
-                    $('#editMateriasModal').modal('hide');
-                    await loadProfile(); // Recargar el perfil visualmente
+                    // Actualizar la data local y volver a cargar perfil visual
+                    currentUser.data.materias_interes = Array.from(selectedMateriasKeys);
+                    await loadProfile(); // refresca badges y datos mostrados
+                    Swal.fire('¡Éxito!', 'Tus materias de especialidad han sido actualizadas.', 'success');
+                    return true;
                 } else {
                     Swal.fire('Error', result.message || 'No se pudo actualizar.', 'error');
+                    return false;
                 }
-            } catch (error) {
-                console.error(error);
+            } catch (err) {
                 Swal.fire('Error', 'Fallo al conectar con el servidor', 'error');
+                return false;
             } finally {
-                btn.disabled = false;
-                btn.textContent = 'Guardar Cambios';
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = 'Guardar Cambios';
             }
+        }
+        
+        // Event listeners
+        document.getElementById('btnEditMaterias')?.addEventListener('click', () => {
+            // Sincronizar selectedMateriasKeys con el estado actual antes de abrir modal
+            if (userData && userData.materias_interes) {
+                selectedMateriasKeys.clear();
+                userData.materias_interes.forEach(k => selectedMateriasKeys.add(k));
+            }
+            const modal = new bootstrap.Modal(document.getElementById('editMateriasModal'));
+            modal.show();
         });
+        
+        document.getElementById('btnSaveMaterias')?.addEventListener('click', async () => {
+            await saveMaterias();
+            const modalEl = document.getElementById('editMateriasModal');
+            const modalInstance = bootstrap.Modal.getInstance(modalEl);
+            if (modalInstance) modalInstance.hide();
+        });
+        
+        document.getElementById('logoutBtn')?.addEventListener('click', (e) => {
+            e.preventDefault();
+            Swal.fire('Sesión cerrada', 'Has cerrado sesión exitosamente.', 'info');
+            // Recargar simulación, reset a valores iniciales? (opcional)
+            setTimeout(() => location.reload(), 1500);
+        });
+        
+        document.getElementById('backDashboardLink')?.addEventListener('click', (e) => {
+            e.preventDefault();
+            Swal.fire('Dashboard', 'Redirigiendo al panel principal (simulado)', 'info');
+        });
+        
+        // Inicializar
+        loadProfile();
     </script>
 </body>
 </html>

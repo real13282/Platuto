@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>SB Admin 2 - Profile</title>
+    <!-- Custom fonts for this template-->
+    <link href="vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet">
+    <!-- Custom styles for this template-->
+    <link href="css/sb-admin-2.min.css" rel="stylesheet">
+</head>
+<body id="page-top" class="bg-gradient-primary">
+    <div class="container mt-5">
+        <div class="card o-hidden border-0 shadow-lg my-5">
+            <div class="card-body p-0">
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="p-5">
+                            <div class="text-center">
+                                <h1 class="h4 text-gray-900 mb-4">Perfil de Usuario</h1>
+                            </div>
+                            <div id="profileContainer" class="text-center">
+                                <!-- Profile content loaded via JS -->
+                                <p>Cargando información del perfil...</p>
+                            </div>
+                            <hr>
+                            <div class="text-center">
+                                <a class="small" href="index.html">Volver al Dashboard</a>
+                            </div>
+                            <div class="text-center mt-3">
+                                <a class="btn btn-danger btn-sm" href="/api/logout">Cerrar Sesión</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Bootstrap core JavaScript-->
+    <script src="vendor/jquery/jquery.min.js"></script>
+    <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <!-- Core plugin JavaScript-->
+    <script src="vendor/jquery-easing/jquery.easing.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                // El endpoint /api/me necesita extenderse para traer nombre y otros datos básicos,
+                // Pero podemos intentar obtener lo que esté disponible y complementarlo.
+                // Usaremos /api/me para el rol.
+                const response = await fetch('/api/me');
+                const result = await response.json();
+
+                const container = document.getElementById('profileContainer');
+
+                if (result.success) {
+                    let rolDisplay = 'Usuario';
+                    let materiasHtml = '';
+
+                    if (result.data.materias_interes && result.data.materias_interes.length > 0) {
+                        materiasHtml = `
+                            <h5 class="mt-4 text-gray-800">Materias de Interés / Especialidad</h5>
+                            <ul class="list-unstyled">
+                                ${result.data.materias_interes.map(m => `<li><i class="fas fa-check text-success mr-2"></i>${m}</li>`).join('')}
+                            </ul>
+                        `;
+                    } else {
+                        materiasHtml = `<p class="text-muted mt-3">No hay materias registradas.</p>`;
+                    }
+
+                    const user = result.data.user || {};
+                    const roleLabel = user.role ? user.role.toUpperCase() : (user.isMaestro ? 'MAESTRO' : 'ALUMNO');
+                    const email = user.correo ? `<p class="text-gray-600 mb-1"><i class="fas fa-envelope mr-2"></i>${user.correo}</p>` : '';
+
+                    container.innerHTML = `
+                        <div class="mb-4">
+                            <i class="fas fa-user-circle fa-5x text-gray-300"></i>
+                        </div>
+                        <h3 class="font-weight-bold text-gray-800 mb-1">${user.nombre || 'Usuario'}</h3>
+                        <p class="text-primary font-weight-bold mb-3">${roleLabel} | No. Control: ${user.nocontrol || 'N/A'}</p>
+                        ${email}
+                        <hr class="my-4">
+                        ${materiasHtml}
+                    `;
+                } else {
+                    container.innerHTML = `<p class="text-danger">No se pudo cargar el perfil.</p>`;
+                }
+            } catch (error) {
+                console.error("Error al cargar perfil:", error);
+                document.getElementById('profileContainer').innerHTML = `<p class="text-danger">Error interno al cargar perfil.</p>`;
+            }
+        });
+    </script>
+</body>
+</html>

@@ -138,6 +138,31 @@ async function setupDatabase() {
             }
         }
     } catch (err) { console.error("❌ Error Semilla:", err.message); }
+
+    // Configurar e insertar datos para Tutorías si la tabla no existe o está vacía (V3__tutorias.sql)
+    const sqlTutoriasPath = path.join(__dirname, 'migrations', 'V3__tutorias.sql');
+    if (fs.existsSync(sqlTutoriasPath)) {
+        try {
+            const hasTutoriasTable = await knex.schema.hasTable('Tutorias');
+            if (!hasTutoriasTable) {
+                const tutoriasContent = fs.readFileSync(sqlTutoriasPath, 'utf8');
+                const tutoriasQueries = tutoriasContent.split(';').filter(q => q.trim() !== '');
+                for (let q of tutoriasQueries) { await knex.raw(q); }
+                console.log("✅ Tabla Tutorias y semilla cargada.");
+            } else {
+                const [{ total }] = await knex('Tutorias').count('* as total');
+                if (total === 0) {
+                     const tutoriasContent = fs.readFileSync(sqlTutoriasPath, 'utf8');
+                     const tutoriasQueries = tutoriasContent.split(';').filter(q => q.trim() !== '');
+                     // Saltarse el CREATE TABLE si ya existe (pero arriba ya se chequea)
+                     for (let q of tutoriasQueries) { await knex.raw(q); }
+                     console.log("✅ Tabla Tutorias ya existía, pero se insertó semilla.");
+                }
+            }
+        } catch (err) {
+            console.error("❌ Error Tutorias:", err.message);
+        }
+    }
 }
 
 setupDatabase();
@@ -159,7 +184,8 @@ const authMiddleware = (req, res, next) => {
         req.path.startsWith('/api/register') ||
         req.path.startsWith('/api/alumnos') ||
         req.path.startsWith('/api/maestro') ||
-        req.path.startsWith('/api/planes-estudio')
+        req.path.startsWith('/api/planes-estudio') ||
+        req.path.startsWith('/api/tutorias')
     ) {
         return next();
     }
@@ -356,6 +382,7 @@ app.post('/api/register/tutor', uploadTutorAlumno.fields([{ name: 'foto', maxCou
         } catch { materiasArr = Array.isArray(materias) ? materias : [materias]; }
         const materiasStr = materiasArr.join(',');
 
+        let tutorId;
         if (tutor) {
             const updateData = { materias: materiasStr };
             if (urlFoto) updateData.url_foto_perfil = urlFoto;
@@ -364,13 +391,32 @@ app.post('/api/register/tutor', uploadTutorAlumno.fields([{ name: 'foto', maxCou
             await knex('Tutores')
                 .where({ idalumnos: alumno.idalumnos })
                 .update(updateData);
+            tutorId = tutor.idTutores;
         } else {
-            await knex('Tutores').insert({
+            const [newId] = await knex('Tutores').insert({
                 idalumnos: alumno.idalumnos,
                 materias: materiasStr,
                 url_foto_perfil: urlFoto,
                 url_cv: urlCv
             });
+            tutorId = newId;
+        }
+
+        if (tutorId) {
+            for (const claveMateria of materiasArr) {
+                const materiaRow = await knex('Materias').where({ clave: claveMateria }).first();
+                if (materiaRow) {
+                    const tutoriaExistente = await knex('Tutorias').where({ idtutor: tutorId, idclases: materiaRow.idclases }).first();
+                    if (!tutoriaExistente) {
+                        await knex('Tutorias').insert({
+                            idtutor: tutorId,
+                            idclases: materiaRow.idclases,
+                            fecha_hora: new Date().toISOString(),
+                            estado: 'Disponible'
+                        });
+                    }
+                }
+            }
         }
 
         res.json({ success: true, message: 'Registro de tutor exitoso' });
@@ -457,13 +503,28 @@ app.post('/api/register/tutor_maestro',
             });
 
             // Insertar en Tutores
-            await knex('Tutores').insert({
+            const [tutorId] = await knex('Tutores').insert({
                 idmaestro: maestro.idmaestro,
                 idalumnos: null,
                 materias: materiasStr,
                 url_foto_perfil: urlFoto,
                 url_cv: urlCv
             });
+
+            if (tutorId) {
+                for (const claveMateria of materiasArr) {
+                    const materiaRow = await knex('Materias').where({ clave: claveMateria }).first();
+                    if (materiaRow) {
+                        await knex('Tutorias').insert({
+                            idtutor: tutorId,
+                            idclases: materiaRow.idclases,
+                            tema_especifico: 'Tutoría general',
+                            fecha_hora: new Date().toISOString(),
+                            estado: 'Disponible'
+                        });
+                    }
+                }
+            }
 
             res.json({ success: true, message: 'Registro de tutor maestro exitoso' });
         } catch (error) {
@@ -522,6 +583,47 @@ app.get('/api/planes-estudio', async (req, res) => {
     }
 });
 
+app.get('/api/tutorias', async (req, res) => {
+    try {
+        let tutoriasQuery = knex('Tutorias')
+            .join('Tutores', 'Tutorias.idtutor', '=', 'Tutores.idTutores')
+            .join('Materias', 'Tutorias.idclases', '=', 'Materias.idclases')
+            .leftJoin('Maestro', 'Tutores.idmaestro', '=', 'Maestro.idmaestro')
+            .leftJoin('Alumnos', 'Tutores.idalumnos', '=', 'Alumnos.idalumnos')
+            .select(
+                'Tutorias.idtutoria',
+                'Materias.materia',
+                'Materias.clave',
+                'Tutorias.fecha_hora',
+                'Tutorias.estado',
+                'Tutores.idTutores as id_tutor',
+                knex.raw("COALESCE(Maestro.nombre || ' ' || Maestro.apellidopat, Alumnos.nombre || ' ' || Alumnos.apellidopat) as tutor_nombre")
+            );
+
+        // Apply filtering if the user is logged in as asesorado
+        const token = req.cookies.token;
+        if (token) {
+            try {
+                const decoded = jwt.verify(token, SECRET_KEY);
+                if (decoded.role === 'asesorado') {
+                    const alumno = await knex('Alumnos').where({ idalumnos: decoded.id }).first();
+                    if (alumno) {
+                        tutoriasQuery = tutoriasQuery
+                            .where('Materias.idlicenciaturas', alumno.idlicenciaturas)
+                            .andWhere('Materias.semestre', alumno.semestre);
+                    }
+                }
+            } catch (err) {}
+        }
+
+        const tutorias = await tutoriasQuery;
+        res.json({ success: true, data: tutorias });
+    } catch (error) {
+        console.error("Error al obtener tutorías:", error);
+        res.status(500).json({ success: false, message: 'Error interno en el servidor' });
+    }
+});
+
 app.get('/api/me', async (req, res) => {
     try {
         const userId = req.user.id;
@@ -558,9 +660,23 @@ app.get('/api/me', async (req, res) => {
             }
         }
 
+        let userInfo = {};
+        if (isMaestro) {
+            const maestroInfo = await knex('Maestro').where({ idmaestro: userId }).first();
+            if (maestroInfo) {
+                userInfo = { nombre: `${maestroInfo.nombre} ${maestroInfo.apellidopat}`, nocontrol: maestroInfo.nocontrol, correo: maestroInfo.correo };
+            }
+        } else {
+            const alumnoInfo = await knex('Alumnos').where({ idalumnos: userId }).first();
+            if (alumnoInfo) {
+                userInfo = { nombre: `${alumnoInfo.nombre} ${alumnoInfo.apellidopat}`, nocontrol: alumnoInfo.nocontrol, correo: alumnoInfo.correo };
+            }
+        }
+
         res.json({
             success: true,
             data: {
+                user: { ...userInfo, role, isMaestro },
                 materias_interes: materiasInteresStr ? materiasInteresStr.split(',') : [],
                 materias_semestre: materiasSemestre
             }

@@ -345,17 +345,9 @@
                             <!-- Dropdown - User Information -->
                             <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in"
                                 aria-labelledby="userDropdown">
-                                <a class="dropdown-item" href="#">
+                                <a class="dropdown-item" href="profile.html">
                                     <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
                                     Profile
-                                </a>
-                                <a class="dropdown-item" href="#">
-                                    <i class="fas fa-cogs fa-sm fa-fw mr-2 text-gray-400"></i>
-                                    Settings
-                                </a>
-                                <a class="dropdown-item" href="#">
-                                    <i class="fas fa-list fa-sm fa-fw mr-2 text-gray-400"></i>
-                                    Activity Log
                                 </a>
                                 <div class="dropdown-divider"></div>
                                 <a class="dropdown-item" href="#" data-toggle="modal" data-target="#logoutModal">
@@ -375,10 +367,10 @@
 
                     <!-- Page Heading -->
                     <div class="d-sm-flex align-items-center justify-content-between mb-4">
-                        <h1 class="h3 mb-0 text-gray-800">Buscador de Materias de Interés</h1>
+                        <h1 class="h3 mb-0 text-gray-800">Buscador de Tutorías Disponibles</h1>
                     </div>
 
-                    <!-- Resultados de Búsqueda / Materias de Interés -->
+                    <!-- Resultados de Búsqueda / Tutorías -->
                     <div class="row" id="materiasContainer">
                         <!-- JS populate here -->
                     </div>
@@ -424,7 +416,7 @@
                 <div class="modal-body">Select "Logout" below if you are ready to end your current session.</div>
                 <div class="modal-footer">
                     <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
-                    <a class="btn btn-primary" href="login.html">Logout</a>
+                    <a class="btn btn-primary" href="/api/logout">Logout</a>
                 </div>
             </div>
         </div>
@@ -447,22 +439,81 @@
     <script src="js/demo/chart-area-demo.js"></script>
     <script src="js/demo/chart-pie-demo.js"></script>
 
-    <!-- Cargar Materias del Usuario -->
+    <!-- Cargar Tutorías Disponibles y Perfil -->
     <script>
+        let todasLasTutorias = [];
+
+        function renderTutorias(tutorias) {
+            const container = document.getElementById('materiasContainer');
+            container.innerHTML = ''; // Limpiar
+
+            if (tutorias.length > 0) {
+                tutorias.forEach(tutoria => {
+                    const col = document.createElement('div');
+                    col.className = 'col-xl-3 col-md-6 mb-4 tutoria-card';
+                    col.dataset.materia = tutoria.materia.toLowerCase();
+
+                    const fecha = tutoria.fecha_hora ? new Date(tutoria.fecha_hora).toLocaleString('es-MX', { dateStyle: 'short', timeStyle: 'short' }) : 'Fecha por definir';
+
+                    col.innerHTML = `
+                        <div class="card border-left-success shadow h-100 py-2 hover-card" style="cursor: pointer; transition: transform 0.2s;">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">${tutoria.clave}</div>
+                                        <div class="h6 mb-1 font-weight-bold text-gray-800">${tutoria.materia}</div>
+                                        <div class="text-xs text-gray-500 mb-1"><i class="fas fa-user fa-sm fa-fw mr-1"></i>${tutoria.tutor_nombre}</div>
+                                        <div class="text-xs text-gray-500"><i class="fas fa-calendar fa-sm fa-fw mr-1"></i>${fecha}</div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="fas fa-chalkboard-teacher fa-2x text-gray-300"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    // Efecto hover
+                    col.querySelector('.card').addEventListener('mouseenter', function() { this.style.transform = 'scale(1.03)'; });
+                    col.querySelector('.card').addEventListener('mouseleave', function() { this.style.transform = 'scale(1)'; });
+
+                    container.appendChild(col);
+                });
+            } else {
+                container.innerHTML = `
+                    <div class="col-12 text-center mt-5">
+                        <i class="fas fa-search text-gray-300" style="font-size: 4rem; margin-bottom: 1rem;"></i>
+                        <h4 class="text-gray-500">No se encontraron tutorías.</h4>
+                    </div>
+                `;
+            }
+        }
+
+        function filterTutorias(query) {
+            const q = query.toLowerCase().trim();
+            if (!q) {
+                renderTutorias(todasLasTutorias);
+                return;
+            }
+            const filtradas = todasLasTutorias.filter(t =>
+                t.materia.toLowerCase().includes(q) ||
+                (t.clave && t.clave.toLowerCase().includes(q))
+            );
+            renderTutorias(filtradas);
+        }
+
         document.addEventListener('DOMContentLoaded', async () => {
             try {
-                const response = await fetch('/api/me');
-                const result = await response.json();
+                // Obtener perfil para el menú de semestre
+                const responseMe = await fetch('/api/me');
+                const resultMe = await responseMe.json();
 
-                if (result.success && result.data) {
-                    
-                    // 1. Poblar el Filtro con materias del semestre actual (si aplica)
+                if (resultMe.success && resultMe.data) {
                     const menu = document.getElementById('materiasFilterMenu');
                     const separator = menu.querySelector('.dropdown-divider');
                     const header = menu.querySelector('.dropdown-header');
                     
-                    if (result.data.materias_semestre && result.data.materias_semestre.length > 0) {
-                        result.data.materias_semestre.forEach(materia => {
+                    if (resultMe.data.materias_semestre && resultMe.data.materias_semestre.length > 0) {
+                        resultMe.data.materias_semestre.forEach(materia => {
                             const item = document.createElement('a');
                             item.className = 'dropdown-item btn-filter-materia';
                             item.href = '#';
@@ -470,58 +521,52 @@
                             item.addEventListener('click', (e) => {
                                 e.preventDefault();
                                 document.getElementById('searchInput').value = materia;
+                                document.getElementById('searchInputMobile').value = materia;
+                                filterTutorias(materia);
                             });
                             menu.insertBefore(item, separator);
                         });
                     } else {
                         header.textContent = 'No tienes materias este semestre';
                     }
+                }
 
-                    // 2. Poblar el dashboard principal con las "materias de interes" (Tarjetas)
-                    const container = document.getElementById('materiasContainer');
-                    if (result.data.materias_interes && result.data.materias_interes.length > 0) {
-                        result.data.materias_interes.forEach(materia => {
-                            // Crear una tarjeta de Bootstrap para la materia
-                            const col = document.createElement('div');
-                            col.className = 'col-xl-3 col-md-6 mb-4';
-                            
-                            col.innerHTML = `
-                                <div class="card border-left-info shadow h-100 py-2 hover-card" style="cursor: pointer; transition: transform 0.2s;">
-                                    <div class="card-body">
-                                        <div class="row no-gutters align-items-center">
-                                            <div class="col mr-2">
-                                                <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Materia de Interés</div>
-                                                <div class="h5 mb-0 font-weight-bold text-gray-800">${materia}</div>
-                                            </div>
-                                            <div class="col-auto">
-                                                <i class="fas fa-book fa-2x text-gray-300"></i>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            `;
-                            // Efecto hover
-                            col.querySelector('.card').addEventListener('mouseenter', function() { this.style.transform = 'scale(1.03)'; });
-                            col.querySelector('.card').addEventListener('mouseleave', function() { this.style.transform = 'scale(1)'; });
-                            
-                            container.appendChild(col);
-                        });
-                    } else {
-                        container.innerHTML = `
-                            <div class="col-12 text-center mt-5">
-                                <i class="fas fa-book-open text-gray-300" style="font-size: 4rem; margin-bottom: 1rem;"></i>
-                                <h4 class="text-gray-500">No tienes materias de interés registradas.</h4>
-                            </div>
-                        `;
-                    }
+                // Obtener Tutorías
+                const responseTut = await fetch('/api/tutorias');
+                const resultTut = await responseTut.json();
+
+                if (resultTut.success && resultTut.data) {
+                    todasLasTutorias = resultTut.data;
+                    renderTutorias(todasLasTutorias);
+                }
+
+                // Lógica de Búsqueda Desktop
+                const searchInput = document.getElementById('searchInput');
+                searchInput.addEventListener('input', (e) => {
+                    filterTutorias(e.target.value);
+                    document.getElementById('searchInputMobile').value = e.target.value; // Sincronizar
+                });
+
+                // Lógica de Búsqueda Mobile (Añadiendo ID dinámicamente o buscándolo por selector)
+                const searchInputMobile = document.querySelector('.d-sm-none .navbar-search input');
+                if (searchInputMobile) {
+                    searchInputMobile.id = 'searchInputMobile';
+                    searchInputMobile.addEventListener('input', (e) => {
+                        filterTutorias(e.target.value);
+                        searchInput.value = e.target.value; // Sincronizar
+                    });
                 }
                 
+                // Limpiar Filtro
                 document.getElementById('clearFilterBtn').addEventListener('click', (e) => {
                     e.preventDefault();
-                    document.getElementById('searchInput').value = '';
+                    searchInput.value = '';
+                    if (searchInputMobile) searchInputMobile.value = '';
+                    filterTutorias('');
                 });
+
             } catch (error) {
-                console.error("Error cargando perfil:", error);
+                console.error("Error cargando datos:", error);
             }
         });
     </script>

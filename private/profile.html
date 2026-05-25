@@ -141,7 +141,12 @@
             <div class="col-lg-8">
                 <div class="card profile-card">
                     <div class="profile-header shadow-sm">
-                        <img id="profileImage" src="https://ui-avatars.com/api/?background=0D6EFD&color=fff&rounded=true&size=128&bold=true&name=Usuario" alt="Profile" class="profile-avatar">
+                        <div class="position-relative d-inline-block" style="left: 50%; transform: translateX(-50%); bottom: -75px; z-index: 2;">
+                            <img id="profileImage" src="img/undraw_profile.svg" alt="Profile" class="profile-avatar" style="position: static; transform: none; left: auto; bottom: auto;">
+                            <button class="btn btn-primary btn-sm rounded-circle shadow" data-toggle="modal" data-target="#editPerfilModal" style="position: absolute; bottom: 5px; right: 5px; z-index: 3;" title="Cambiar Foto">
+                                <i class="fas fa-camera"></i>
+                            </button>
+                        </div>
                     </div>
                     <div class="card-body profile-content text-center pb-5">
                         
@@ -158,12 +163,15 @@
                             
                             <div class="mb-4" id="profileRoleBadge"></div>
 
-                            <div class="row justify-content-center mb-4 text-gray-700">
+                            <div class="row justify-content-center mb-4 text-gray-700 position-relative">
                                 <div class="col-sm-6 mb-2">
                                     <i class="fas fa-envelope me-2 text-primary"></i> <span id="profileEmail" class="fw-semibold">---</span>
                                 </div>
                                 <div class="col-sm-6 mb-2" id="profilePhoneContainer">
-                                    <i class="fas fa-phone me-2 text-primary"></i> <span id="profilePhone" class="fw-semibold">---</span>
+                                    <i class="fas fa-phone mr-2 text-primary"></i> <span id="profilePhone" class="font-weight-600">N/A</span>
+                                    <button class="btn btn-sm btn-link text-primary p-0 ml-2" data-toggle="modal" data-target="#editPerfilModal" title="Editar Información" style="vertical-align: baseline;">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
                                 </div>
                             </div>
 
@@ -224,9 +232,43 @@
         </div>
     </div>
 
-    <!-- Bootstrap + jQuery (para modal y compatibilidad) -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Modal Editar Perfil (Foto y Teléfono) -->
+    <div class="modal fade" id="editPerfilModal" tabindex="-1" role="dialog" aria-labelledby="editPerfilModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content shadow-lg border-0" style="border-radius: 1rem;">
+                <div class="modal-header" style="background-color: #1a365d; color: white; border-radius: 1rem 1rem 0 0;">
+                    <h5 class="modal-title font-weight-bold" id="editPerfilModalLabel">Editar Información</h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body p-4">
+                    <form id="formEditPerfil">
+                        <div class="form-group mb-4">
+                            <label class="font-weight-bold text-gray-800">Teléfono</label>
+                            <input type="text" class="form-control" id="inputEditTelefono" placeholder="Ingresa tu número de teléfono" maxlength="15">
+                        </div>
+                        <div class="form-group mb-4">
+                            <label class="font-weight-bold text-gray-800">Foto de Perfil</label>
+                            <div class="custom-file">
+                                <input type="file" class="custom-file-input" id="inputEditFoto" accept="image/*">
+                                <label class="custom-file-label" for="inputEditFoto" data-browse="Buscar">Seleccionar imagen...</label>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer border-top-0 pt-0 pb-4 pr-4">
+                    <button type="button" class="btn btn-secondary px-4 font-weight-bold" style="border-radius: 8px;" data-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary px-4 font-weight-bold" style="background-color: #1a365d; border-color: #1a365d; border-radius: 8px;" id="btnSavePerfil">Guardar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap core JavaScript-->
+    <script src="vendor/jquery/jquery.min.js"></script>
+    <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="vendor/jquery-easing/jquery.easing.min.js"></script>
 
     <script>
         // -------------------------------
@@ -395,8 +437,49 @@
                     if (user.url_foto_perfil) {
                         profileImg.src = user.url_foto_perfil;
                     } else {
-                        const initials = (user.nombre || "Usuario").split(' ').map(n=>n[0]).join('').toUpperCase();
-                        profileImg.src = `https://ui-avatars.com/api/?background=008B8B&color=fff&rounded=true&size=128&bold=true&name=${encodeURIComponent(user.nombre || "Usuario")}`;
+                        profileImage.src = 'img/undraw_profile.svg';
+                    }
+
+                    // Contact info
+                    document.getElementById('profileEmail').textContent = user.correo || 'No especificado';
+                    
+                    const phoneEl = document.getElementById('profilePhone');
+                    if (user.telefono) {
+                        phoneEl.textContent = user.telefono;
+                        document.getElementById('inputEditTelefono').value = user.telefono;
+                    } else {
+                        phoneEl.textContent = 'Sin registrar';
+                        document.getElementById('inputEditTelefono').value = '';
+                    }
+
+                    // Role Badge
+                    const badgeContainer = document.getElementById('profileRoleBadge');
+                    const btnEditMaterias = document.getElementById('btnEditMaterias');
+                    
+                    if (user.role === 'tutor') {
+                        badgeContainer.innerHTML = `<span class="badge badge-success badge-role shadow-sm"><i class="fas fa-chalkboard-teacher mr-2"></i>Tutor ${user.isMaestro ? 'Maestro' : 'Alumno'}</span>`;
+                        btnEditMaterias.classList.remove('d-none');
+                        btnEditMaterias.innerHTML = '<i class="fas fa-pen mr-1"></i> Modificar Especialidad';
+                    } else {
+                        badgeContainer.innerHTML = `<span class="badge badge-primary badge-role shadow-sm"><i class="fas fa-user-graduate mr-2"></i>Asesorado</span>`;
+                        btnEditMaterias.classList.remove('d-none');
+                        btnEditMaterias.innerHTML = '<i class="fas fa-pen mr-1"></i> Modificar Áreas';
+                    }
+
+                    // Materias list
+                    const materiasContainer = document.getElementById('materiasList');
+                    materiasContainer.innerHTML = '';
+                    if (userData.materias_interes && userData.materias_interes.length > 0) {
+                        userData.materias_interes.forEach(materia => {
+                            materiasContainer.innerHTML += `
+                                <div class="subject-badge">
+                                    <i class="fas fa-book"></i>
+                                    <span>${materia}</span> <!-- Mostrará la clave o nombre, preferible la clave si guardamos eso, pero el frontend asume que materias_interes tiene el string exacto. En realidad guarda CLAVES. Necesitaremos mapearlo. -->
+                                </div>
+                            `;
+                        });
+                    } else {
+                        materiasContainer.innerHTML = `<p class="text-muted text-center w-100 font-italic">No hay materias registradas.</p>`;
                     }
                     
                     // Correo y teléfono
@@ -431,41 +514,35 @@
                     document.getElementById('loader').classList.add('d-none');
                     document.getElementById('profileContainer').classList.remove('d-none');
                     
-                    // Si el usuario es tutor, precargar planes y preparar modal.
+                    // Lógica para poblar el modal de modificación de materias
+                    const carreraGroup = document.getElementById('carreraSelect').parentElement;
                     if (user.role === 'tutor') {
-                        await loadPlanesEstudioGlobal();
-                        // Si es tutor alumno, obtener su semestre y carrera para preseleccionar
-                        if (!user.isMaestro && user.nocontrol) {
-                            const alumRes = await request(`/api/alumnos/${user.nocontrol}`);
-                            const alumData = await alumRes.json();
-                            if (alumData.success && alumData.data) {
-                                alumnoSemestre = alumData.data.semestre;
-                                const carreraAlumno = alumData.data.nombre_carrera;
-                                // guardar para pre-seleccionar en el modal
-                                window.prefetchCarrera = carreraAlumno;
-                                // Si ya tenemos el select cargado, lo preseleccionamos cuando se abra el modal
+                        carreraGroup.classList.remove('d-none');
+                        document.getElementById('editMateriasModalLabel').textContent = 'Modificar Especialidad';
+                        
+                        await loadPlanesEstudio();
+                        // Tratar de obtener semestre para Tutor Alumno
+                        if (!user.isMaestro) {
+                            const resAl = await fetch(`/api/alumnos/${user.nocontrol}`);
+                            const datAl = await resAl.json();
+                            if(datAl.success && datAl.data) {
+                                alumnoSemestre = datAl.data.semestre;
+                                // preseleccionar carrera
+                                const cSelect = document.getElementById('carreraSelect');
+                                Array.from(cSelect.options).forEach(o => {
+                                    if(o.value.toLowerCase() === datAl.data.nombre_carrera.toLowerCase()) {
+                                        o.selected = true;
+                                        renderCheckboxes();
+                                    }
+                                });
                             }
                         } else {
                             alumnoSemestre = null; // maestro ve todos los semestres
                         }
-                        // Configurar evento de apertura del modal para cargar la carrera por defecto
-                        const modalElem = document.getElementById('editMateriasModal');
-                        modalElem.addEventListener('show.bs.modal', async () => {
-                            // Asegurar que el select ya tenga opciones
-                            await ensureCarreraSelectLoaded();
-                            if (!user.isMaestro && window.prefetchCarrera) {
-                                const selectCar = document.getElementById('carreraSelect');
-                                if (selectCar) {
-                                    for(let i=0; i<selectCar.options.length; i++) {
-                                        if(selectCar.options[i].value === window.prefetchCarrera) {
-                                            selectCar.selectedIndex = i;
-                                            break;
-                                        }
-                                    }
-                                }
-                            }
-                            renderCheckboxesForCarrera();
-                        });
+                    } else if (user.role === 'asesorado') {
+                        carreraGroup.classList.add('d-none');
+                        document.getElementById('editMateriasModalLabel').textContent = 'Modificar Áreas de Oportunidad';
+                        renderAsesoradoCheckboxes();
                     }
                 } else {
                     Swal.fire('Error', 'No se pudo cargar el perfil', 'error');
@@ -612,29 +689,69 @@
                 noMsg.textContent = 'No hay materias disponibles para este periodo.';
             }
         }
-        
-        // Guardar materias seleccionadas (simula PUT)
-        async function saveMaterias() {
+
+        function renderAsesoradoCheckboxes() {
+            const container = document.getElementById('materiasCheckboxContainer');
+            container.innerHTML = '';
+
+            const materiasSem = userData.materias_semestre || [];
+            if (materiasSem.length === 0) {
+                container.innerHTML = '<p class="text-muted">No se encontraron materias para tu semestre.</p>';
+                return;
+            }
+
+            const ul = document.createElement('ul');
+            ul.className = 'list-unstyled mt-2 pl-3 py-2';
+
+            materiasSem.forEach((materiaStr, idx) => {
+                const li = document.createElement('li');
+                li.className = 'custom-control custom-checkbox mb-2';
+                
+                const inp = document.createElement('input');
+                inp.type = 'checkbox';
+                inp.className = 'custom-control-input';
+                inp.id = `mat_ase_${idx}`;
+                inp.value = materiaStr;
+                inp.checked = selectedMateriasKeys.has(materiaStr);
+                
+                inp.onchange = function() {
+                    if(this.checked) selectedMateriasKeys.add(materiaStr);
+                    else selectedMateriasKeys.delete(materiaStr);
+                };
+
+                const lbl = document.createElement('label');
+                lbl.className = 'custom-control-label text-gray-700';
+                lbl.htmlFor = `mat_ase_${idx}`;
+                lbl.textContent = materiaStr;
+
+                li.appendChild(inp);
+                li.appendChild(lbl);
+                ul.appendChild(li);
+            });
+
+            container.appendChild(ul);
+        }
+
+        document.getElementById('btnSaveMaterias').addEventListener('click', async () => {
             if (selectedMateriasKeys.size === 0) {
-                Swal.fire('Atención', 'Debes seleccionar al menos una materia de especialidad.', 'warning');
-                return false;
+                Swal.fire('Atención', 'Debes seleccionar al menos una materia.', 'warning');
+                return;
             }
             const saveBtn = document.getElementById('btnSaveMaterias');
             saveBtn.disabled = true;
             saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Guardando...';
             try {
-                const response = await request('/api/me/tutor/materias', {
+                const endpoint = userData.user.role === 'tutor' ? '/api/me/tutor/materias' : '/api/me/asesorado/materias';
+                const response = await fetch(endpoint, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ materias: Array.from(selectedMateriasKeys) })
                 });
                 const result = await response.json();
                 if (result.success) {
-                    // Actualizar la data local y volver a cargar perfil visual
-                    currentUser.data.materias_interes = Array.from(selectedMateriasKeys);
-                    await loadProfile(); // refresca badges y datos mostrados
-                    Swal.fire('¡Éxito!', 'Tus materias de especialidad han sido actualizadas.', 'success');
-                    return true;
+                    await Swal.fire('¡Éxito!', 'Tus áreas de oportunidad han sido actualizadas.', 'success');
+                    $('#editMateriasModal').modal('hide');
+                    await loadProfile(); // Recargar el perfil visualmente
                 } else {
                     Swal.fire('Error', result.message || 'No se pudo actualizar.', 'error');
                     return false;
@@ -643,8 +760,61 @@
                 Swal.fire('Error', 'Fallo al conectar con el servidor', 'error');
                 return false;
             } finally {
-                saveBtn.disabled = false;
-                saveBtn.innerHTML = 'Guardar Cambios';
+                btn.disabled = false;
+                btn.innerHTML = 'Guardar Cambios';
+            }
+        });
+
+        // Script para el input de la foto de perfil (mostrar el nombre del archivo)
+        document.getElementById('inputEditFoto').addEventListener('change', function(e) {
+            const fileName = e.target.files[0] ? e.target.files[0].name : 'Seleccionar imagen...';
+            const label = e.target.nextElementSibling;
+            label.textContent = fileName;
+        });
+
+        document.getElementById('btnSavePerfil').addEventListener('click', async () => {
+            const telefono = document.getElementById('inputEditTelefono').value.trim();
+            const fotoInput = document.getElementById('inputEditFoto');
+            
+            if (!telefono && (!fotoInput.files || fotoInput.files.length === 0)) {
+                Swal.fire('Atención', 'No hay datos para actualizar.', 'info');
+                return;
+            }
+
+            const formData = new FormData();
+            if (telefono) formData.append('telefono', telefono);
+            if (fotoInput.files && fotoInput.files.length > 0) formData.append('foto', fotoInput.files[0]);
+
+            const btn = document.getElementById('btnSavePerfil');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Guardando...';
+
+            try {
+                const response = await fetch('/api/me/perfil', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    await Swal.fire('¡Éxito!', 'Tu información ha sido actualizada.', 'success');
+                    $('#editPerfilModal').modal('hide');
+                    await loadProfile(); // Recargar datos
+                    
+                    // Trigger global refresh for Navbar avatar if possible
+                    if(window.parent && window.parent.document.getElementById('navUserFoto')) {
+                        // Opcional: forzar a que la barra superior recargue si queremos que sea instantáneo
+                    }
+                } else {
+                    Swal.fire('Error', result.message || 'No se pudo actualizar.', 'error');
+                }
+            } catch (error) {
+                console.error(error);
+                Swal.fire('Error', 'Fallo al conectar con el servidor', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = 'Guardar';
             }
         }
         

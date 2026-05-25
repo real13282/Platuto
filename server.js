@@ -336,13 +336,15 @@ app.post('/api/register/asesorado', uploadAsesorado.single('foto'), async (req, 
             await knex('Asesorados').insert({
                 idalumnos: alumno.idalumnos,
                 materias: materiasStr,
-                url_foto_perfil: urlFoto
+                url_foto_perfil: urlFoto,
+                telefono: telefono || null
             });
         } else {
             // Si ya existe, lo actualizamos
             const updateData = {};
             if (materiasStr) updateData.materias = materiasStr;
             if (urlFoto) updateData.url_foto_perfil = urlFoto;
+            if (telefono) updateData.telefono = telefono;
 
             await knex('Asesorados').where({ idalumnos: alumno.idalumnos }).update(updateData);
         }
@@ -395,6 +397,7 @@ app.post('/api/register/tutor', uploadTutorAlumno.fields([{ name: 'foto', maxCou
             const updateData = { materias: materiasStr };
             if (urlFoto) updateData.url_foto_perfil = urlFoto;
             if (urlCv) updateData.url_cv = urlCv;
+            if (telefono) updateData.telefono = telefono;
 
             await knex('Tutores')
                 .where({ idalumnos: alumno.idalumnos })
@@ -405,7 +408,8 @@ app.post('/api/register/tutor', uploadTutorAlumno.fields([{ name: 'foto', maxCou
                 idalumnos: alumno.idalumnos,
                 materias: materiasStr,
                 url_foto_perfil: urlFoto,
-                url_cv: urlCv
+                url_cv: urlCv,
+                telefono: telefono || null
             });
             tutorId = newId;
         }
@@ -528,7 +532,8 @@ app.post('/api/register/tutor_maestro',
                 idalumnos: null,
                 materias: materiasStr,
                 url_foto_perfil: urlFoto,
-                url_cv: urlCv
+                url_cv: urlCv,
+                telefono: telefono || null
             });
 
             if (tutorId) {
@@ -709,12 +714,14 @@ app.get('/api/me', async (req, res) => {
         let materiasInteresStr = '';
         let materiasSemestre = [];
         let urlFotoPerfil = null;
+        let telefonoRol = null;
 
         if (role === 'asesorado') {
             const asesorado = await knex('Asesorados').where({ idalumnos: userId }).first();
             if (asesorado) {
                 materiasInteresStr = asesorado.materias;
                 urlFotoPerfil = asesorado.url_foto_perfil;
+                telefonoRol = asesorado.telefono;
             }
         } else if (role === 'tutor') {
             let tutor;
@@ -726,6 +733,7 @@ app.get('/api/me', async (req, res) => {
             if (tutor) {
                 materiasInteresStr = tutor.materias;
                 urlFotoPerfil = tutor.url_foto_perfil;
+                telefonoRol = tutor.telefono;
             }
         }
 
@@ -743,12 +751,12 @@ app.get('/api/me', async (req, res) => {
         if (isMaestro) {
             const maestroInfo = await knex('Maestro').where({ idmaestro: userId }).first();
             if (maestroInfo) {
-                userInfo = { nombre: `${maestroInfo.nombre} ${maestroInfo.apellidopat}`, nocontrol: maestroInfo.nocontrol, correo: maestroInfo.correo };
+                userInfo = { nombre: `${maestroInfo.nombre} ${maestroInfo.apellidopat}`, nocontrol: maestroInfo.nocontrol, correo: maestroInfo.correo, telefono: telefonoRol || maestroInfo.telefono };
             }
         } else {
             const alumnoInfo = await knex('Alumnos').where({ idalumnos: userId }).first();
             if (alumnoInfo) {
-                userInfo = { nombre: `${alumnoInfo.nombre} ${alumnoInfo.apellidopat}`, nocontrol: alumnoInfo.nocontrol, correo: alumnoInfo.correo };
+                userInfo = { nombre: `${alumnoInfo.nombre} ${alumnoInfo.apellidopat}`, nocontrol: alumnoInfo.nocontrol, correo: alumnoInfo.correo, telefono: telefonoRol || alumnoInfo.telefono };
             }
         }
 
@@ -829,6 +837,85 @@ app.put('/api/me/tutor/materias', async (req, res) => {
         res.json({ success: true, message: 'Materias actualizadas exitosamente' });
     } catch (error) {
         console.error("Error al actualizar materias del tutor:", error);
+        res.status(500).json({ success: false, message: 'Error interno en el servidor' });
+    }
+});
+
+app.put('/api/me/asesorado/materias', async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const role = req.user.role;
+
+        if (role !== 'asesorado') {
+            return res.status(403).json({ success: false, message: 'Acceso denegado' });
+        }
+
+        const { materias } = req.body;
+        if (!Array.isArray(materias)) {
+            return res.status(400).json({ success: false, message: 'Las materias deben ser un arreglo' });
+        }
+
+        const asesorado = await knex('Asesorados').where({ idalumnos: userId }).first();
+
+        if (!asesorado) {
+            return res.status(404).json({ success: false, message: 'Asesorado no encontrado' });
+        }
+
+        const materiasStr = materias.join(',');
+        await knex('Asesorados').where({ idalumnos: userId }).update({ materias: materiasStr });
+
+        res.json({ success: true, message: 'Áreas de oportunidad actualizadas exitosamente' });
+    } catch (error) {
+        console.error("Error al actualizar materias del asesorado:", error);
+        res.status(500).json({ success: false, message: 'Error interno en el servidor' });
+    }
+});
+
+// Endpoint para editar perfil general (Foto y teléfono)
+const uploadPerfil = multer({
+    storage: multer.diskStorage({
+        destination: (req, file, cb) => {
+            const role = req.user && req.user.role === 'tutor' ? 'fotoPerfilT' : 'fotoPerfilA';
+            cb(null, `private/${role}`);
+        },
+        filename: (req, file, cb) => {
+            cb(null, `pf_${Date.now()}_${file.originalname}`);
+        }
+    })
+});
+
+app.post('/api/me/perfil', uploadPerfil.single('foto'), async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const role = req.user.role;
+        const isMaestro = req.user.isMaestro;
+
+        const { telefono } = req.body;
+        const urlFoto = req.file ? (role === 'tutor' ? `fotoPerfilT/${req.file.filename}` : `fotoPerfilA/${req.file.filename}`) : null;
+
+        const updateData = {};
+        if (telefono) updateData.telefono = telefono;
+        if (urlFoto) updateData.url_foto_perfil = urlFoto;
+
+        if (Object.keys(updateData).length === 0) {
+            return res.status(400).json({ success: false, message: 'No hay datos para actualizar' });
+        }
+
+        if (role === 'asesorado') {
+            await knex('Asesorados').where({ idalumnos: userId }).update(updateData);
+        } else if (role === 'tutor') {
+            if (isMaestro) {
+                await knex('Tutores').where({ idmaestro: userId }).update(updateData);
+            } else {
+                await knex('Tutores').where({ idalumnos: userId }).update(updateData);
+            }
+        } else {
+            return res.status(403).json({ success: false, message: 'Rol no válido para actualizar perfil' });
+        }
+
+        res.json({ success: true, message: 'Perfil actualizado exitosamente' });
+    } catch (error) {
+        console.error("Error al actualizar el perfil:", error);
         res.status(500).json({ success: false, message: 'Error interno en el servidor' });
     }
 });

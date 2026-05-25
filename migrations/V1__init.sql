@@ -34,6 +34,7 @@ CREATE TABLE IF NOT EXISTS Asesorados (
     idalumnos INTEGER,
     materias TEXT,
     url_foto_perfil TEXT,
+    telefono TEXT,
     FOREIGN KEY (idalumnos) REFERENCES Alumnos(idalumnos)
 );
 
@@ -45,6 +46,7 @@ CREATE TABLE IF NOT EXISTS Tutores (
     url_cv TEXT,
     url_foto_perfil TEXT,
     materias TEXT,
+    telefono TEXT,
     FOREIGN KEY (idmaestro) REFERENCES Maestro(idmaestro),
     FOREIGN KEY (idalumnos) REFERENCES Alumnos(idalumnos)
 );

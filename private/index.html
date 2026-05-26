@@ -467,6 +467,9 @@
                         </div>
                     </div>
 
+                    <!-- Temas Section (para tutorías ya solicitadas) -->
+                    <div id="modalTemasContainer" style="display: none;"></div>
+
                     <!-- CV Section -->
                     <div class="card shadow-sm border-0 mb-4" style="border-radius: 12px; overflow: hidden;">
                         <div class="card-header bg-white py-3 border-0">
@@ -510,6 +513,25 @@
         let todasLasTutorias = [];
 
         function abrirModalDetalles(tutoria) {
+            // Mostrar temas solicitados si ya está solicitada
+            const temasContainer = document.getElementById('modalTemasContainer');
+            if (temasContainer) {
+                if (tutoria.estado === 'Solicitada' && tutoria.temas) {
+                    temasContainer.innerHTML = `
+                        <div class="card shadow-sm border-left-warning mb-4" style="border-radius: 12px;">
+                            <div class="card-body">
+                                <h6 class="font-weight-bold text-warning mb-1"><i class="fas fa-comment-dots mr-2"></i>Temas Solicitados</h6>
+                                <p class="text-gray-800 small mb-0 font-italic">"${tutoria.temas}"</p>
+                            </div>
+                        </div>
+                    `;
+                    temasContainer.style.display = 'block';
+                } else {
+                    temasContainer.innerHTML = '';
+                    temasContainer.style.display = 'none';
+                }
+            }
+
             // Rellenar datos
             document.getElementById('modalTutorNombre').textContent = tutoria.tutor_nombre;
             
@@ -606,16 +628,78 @@
                 btnSolicitar.parentNode.replaceChild(nuevoBtn, btnSolicitar);
                 
                 nuevoBtn.addEventListener('click', async () => {
+                    // Evitar que Bootstrap bloquee el foco del SweetAlert2 sin cerrar el modal de fondo
+                    $(document).off('focusin.bs.modal');
+
                     // Mostrar alerta de confirmación
                     const confirmAction = await Swal.fire({
                         title: '¿Solicitar tutoría?',
-                        text: `¿Deseas solicitar la tutoría de "${tutoria.materia}" con ${tutoria.tutor_nombre}?`,
+                        html: `
+                            <p class="text-muted small mb-3">¿Deseas solicitar la tutoría de "<strong>${tutoria.materia}</strong>" con <strong>${tutoria.tutor_nombre}</strong>?</p>
+                            <div class="text-left mt-3">
+                                <label for="swal-input-temas" class="small font-weight-bold text-gray-700">Temas requeridos:</label>
+                                <textarea id="swal-input-temas" class="form-control shadow-sm" rows="4" 
+                                    placeholder="Escribe aquí los temas requeridos sobre la materia (mínimo 30 y máximo 256 caracteres)..." 
+                                    style="resize: none; border-radius: 8px; border: 1px solid #d1d3e2; font-size: 0.9rem;" 
+                                    maxlength="256"></textarea>
+                                <div class="d-flex justify-content-between align-items-center mt-1">
+                                    <div id="swal-input-error" class="text-danger small font-weight-bold" style="display: none;"></div>
+                                    <div class="text-muted small ml-auto" id="char-counter">0 / 256</div>
+                                </div>
+                            </div>
+                        `,
                         icon: 'question',
                         showCancelButton: true,
                         confirmButtonText: 'Sí, solicitar',
                         cancelButtonText: 'Cancelar',
                         confirmButtonColor: '#28a745',
-                        cancelButtonColor: '#6c757d'
+                        cancelButtonColor: '#6c757d',
+                        didOpen: () => {
+                            const textarea = document.getElementById('swal-input-temas');
+                            const counter = document.getElementById('char-counter');
+                            textarea.focus();
+                            textarea.addEventListener('input', () => {
+                                const len = textarea.value.length;
+                                counter.textContent = `${len} / 256`;
+                                if (len >= 30 && len <= 256) {
+                                    counter.className = 'text-success small ml-auto font-weight-bold';
+                                    textarea.style.borderColor = '#28a745';
+                                    document.getElementById('swal-input-error').style.display = 'none';
+                                } else {
+                                    counter.className = 'text-muted small ml-auto';
+                                    textarea.style.borderColor = '#d1d3e2';
+                                }
+                            });
+                        },
+                        preConfirm: () => {
+                            const temas = document.getElementById('swal-input-temas').value.trim();
+                            const errorDiv = document.getElementById('swal-input-error');
+                            const textarea = document.getElementById('swal-input-temas');
+                            
+                            if (!temas) {
+                                errorDiv.textContent = '¡Debes escribir algo obligatoriamente!';
+                                errorDiv.style.display = 'block';
+                                textarea.style.borderColor = '#dc3545';
+                                textarea.focus();
+                                return false;
+                            }
+                            if (temas.length < 30) {
+                                errorDiv.textContent = `Faltan caracteres. Escribiste ${temas.length} de los 30 mínimos requeridos.`;
+                                errorDiv.style.display = 'block';
+                                textarea.style.borderColor = '#dc3545';
+                                textarea.focus();
+                                return false;
+                            }
+                            if (temas.length > 256) {
+                                errorDiv.textContent = 'Excediste el límite de caracteres (máximo 256).';
+                                errorDiv.style.display = 'block';
+                                textarea.style.borderColor = '#dc3545';
+                                textarea.focus();
+                                return false;
+                            }
+                            
+                            return temas;
+                        }
                     });
                     
                     if (confirmAction.isConfirmed) {
@@ -624,7 +708,8 @@
                                 method: 'POST',
                                 headers: {
                                     'Content-Type': 'application/json'
-                                }
+                                },
+                                body: JSON.stringify({ temas: confirmAction.value })
                             });
                             
                             const result = await response.json();
@@ -636,7 +721,7 @@
                                     confirmButtonColor: '#28a745'
                                 });
                                 
-                                // Cerrar modal y refrescar tutorías
+                                // Cerrar el modal de detalles al completarse con éxito
                                 $('#tutoriaModal').modal('hide');
                                 
                                 // Refrescar la lista de tutorías

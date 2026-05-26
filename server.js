@@ -125,6 +125,16 @@ async function setupDatabase() {
         // Si ya existe, ignorar el error silenciosamente
     }
 
+    try {
+        await knex.raw(`ALTER TABLE Tutorias ADD COLUMN temas TEXT`);
+        console.log("✅ Columna temas agregada a Tutorias.");
+    } catch (err) {
+        if (!err.message.includes('duplicate column name') && !err.message.includes('already exists')) {
+            console.error("❌ Error migrando columna temas:", err.message);
+        }
+    }
+
+
     // Ejecutar migración V4 (teléfono) manual para Asesorados y Tutores
     const sqlV4Path = path.join(__dirname, 'migrations', 'V4__add_telefono.sql');
     if (fs.existsSync(sqlV4Path)) {
@@ -657,6 +667,7 @@ app.get('/api/tutorias', async (req, res) => {
                 'Materias.clave',
                 'Tutorias.fecha_hora',
                 'Tutorias.estado',
+                'Tutorias.temas',
                 'Tutores.idTutores as id_tutor',
                 'Tutores.url_cv',
                 'Tutores.url_foto_perfil',
@@ -707,6 +718,7 @@ app.get('/api/tutorias', async (req, res) => {
 app.post('/api/tutorias/:id/solicitar', async (req, res) => {
     try {
         const { id } = req.params;
+        const { temas } = req.body;
 
         const tutoria = await knex('Tutorias').where({ idtutoria: id }).first();
         if (!tutoria) {
@@ -717,7 +729,15 @@ app.post('/api/tutorias/:id/solicitar', async (req, res) => {
             return res.status(400).json({ success: false, message: 'Esta tutoría ya no está disponible' });
         }
 
-        await knex('Tutorias').where({ idtutoria: id }).update({ estado: 'Solicitada' });
+        if (!temas || temas.trim().length < 30) {
+            return res.status(400).json({ success: false, message: 'Se requiere especificar temas con un mínimo de 30 caracteres.' });
+        }
+
+        if (temas.trim().length > 256) {
+            return res.status(400).json({ success: false, message: 'El texto de los temas no debe superar los 256 caracteres.' });
+        }
+
+        await knex('Tutorias').where({ idtutoria: id }).update({ estado: 'Solicitada', temas: temas.trim() });
 
         res.json({ success: true, message: 'Tutoría solicitada exitosamente' });
     } catch (error) {

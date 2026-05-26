@@ -769,12 +769,12 @@
                             const item = document.createElement('a');
                             item.className = 'dropdown-item btn-filter-materia';
                             item.href = '#';
-                            item.textContent = materia;
+                            item.textContent = materia.nombre;
                             item.addEventListener('click', (e) => {
                                 e.preventDefault();
-                                document.getElementById('searchInput').value = materia;
-                                document.getElementById('searchInputMobile').value = materia;
-                                filterTutorias(materia);
+                                document.getElementById('searchInput').value = materia.nombre;
+                                document.getElementById('searchInputMobile').value = materia.nombre;
+                                filterTutorias(materia.clave);
                             });
                             menu.insertBefore(item, separator);
                         });

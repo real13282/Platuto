@@ -107,7 +107,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         materiasContainer.innerHTML = '<p class="text-muted text-center mt-3">Selecciona tu semestre para ver materias disponibles...</p>';
     });
 
-    semestreSelect.addEventListener('change', populateMaterias);
+    semestreSelect.addEventListener('change', () => {
+        materiasSeleccionadas.clear();
+        renderSelectedMaterias();
+        populateMaterias();
+    });
 
     function populateMaterias() {
         const carrera = carreraSelect.value;
@@ -123,18 +127,17 @@ document.addEventListener('DOMContentLoaded', async () => {
         let seenSubjects = new Set();
         let hasMaterias = false;
         
-        // Show subjects up to their current semester
+        // Show subjects ONLY for their current semester
         const maxSemester = alumnoSemestre ? alumnoSemestre : parseInt(semestreSelect.value);
 
-        for (let i = 1; i <= maxSemester; i++) {
-            if (semestresObj[i]) {
-                const materiasDeSemestre = semestresObj[i].filter(m => {
-                    if (seenSubjects.has(m.clave)) return false;
-                    seenSubjects.add(m.clave);
-                    return true;
-                }).sort((a, b) => a.nombre.localeCompare(b.nombre));
+        if (semestresObj[maxSemester]) {
+            const materiasDeSemestre = semestresObj[maxSemester].filter(m => {
+                if (seenSubjects.has(m.clave)) return false;
+                seenSubjects.add(m.clave);
+                return true;
+            }).sort((a, b) => a.nombre.localeCompare(b.nombre));
 
-                if (materiasDeSemestre.length === 0) continue;
+            if (materiasDeSemestre.length > 0) {
                 hasMaterias = true;
 
                 const semesterWrapper = document.createElement('div');
@@ -148,21 +151,19 @@ document.addEventListener('DOMContentLoaded', async () => {
                 toggleBtn.style.borderRadius = '0.5rem';
                 
                 const titleSpan = document.createElement('span');
-                titleSpan.textContent = `${i}° Semestre`;
-                
-                const isCurrent = (i === parseInt(semestreSelect.value));
+                titleSpan.textContent = `${maxSemester}° Semestre`;
                 
                 const icon = document.createElement('i');
                 icon.className = 'fas fa-chevron-down';
                 icon.style.transition = 'transform 0.3s ease';
-                icon.style.transform = isCurrent ? 'rotate(180deg)' : 'rotate(0deg)';
+                icon.style.transform = 'rotate(180deg)';
                 
                 toggleBtn.appendChild(titleSpan);
                 toggleBtn.appendChild(icon);
 
                 const ul = document.createElement('ul');
                 ul.className = 'list-unstyled mt-2 pl-3 py-2';
-                ul.style.display = isCurrent ? 'block' : 'none';
+                ul.style.display = 'block';
                 ul.style.borderLeft = '3px solid #008B8B';
 
                 toggleBtn.addEventListener('click', () => {
@@ -178,7 +179,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     const input = document.createElement('input');
                     input.type = 'checkbox';
                     input.className = 'custom-control-input subject-checkbox';
-                    input.id = `materia_${i}_${index}`;
+                    input.id = `materia_${maxSemester}_${index}`;
                     input.value = materiaObj.clave;
                     input.name = 'materias';
                     input.checked = materiasSeleccionadas.has(materiaObj.clave);
@@ -194,7 +195,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                     const label = document.createElement('label');
                     label.className = 'custom-control-label text-dark';
-                    label.htmlFor = `materia_${i}_${index}`;
+                    label.htmlFor = `materia_${maxSemester}_${index}`;
                     label.textContent = materiaObj.nombre;
 
                     li.appendChild(input);
@@ -207,6 +208,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 materiasContainer.appendChild(semesterWrapper);
             }
         }
+
         if (!hasMaterias) {
             materiasContainer.innerHTML = '<p class="text-muted text-center mt-3">No hay materias disponibles.</p>';
         }

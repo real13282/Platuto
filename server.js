@@ -125,6 +125,27 @@ async function setupDatabase() {
         // Si ya existe, ignorar el error silenciosamente
     }
 
+    // Ejecutar migración V4 (teléfono) manual para Asesorados y Tutores
+    const sqlV4Path = path.join(__dirname, 'migrations', 'V4__add_telefono.sql');
+    if (fs.existsSync(sqlV4Path)) {
+        try {
+            const v4Content = fs.readFileSync(sqlV4Path, 'utf8');
+            const v4Queries = v4Content.split(';').filter(q => q.trim() !== '');
+            for (let q of v4Queries) {
+                try {
+                    await knex.raw(q);
+                    console.log("✅ Migración V4 ejecutada:", q);
+                } catch (err) {
+                    if (!err.message.includes('duplicate column name')) {
+                        console.error("❌ Error en V4:", err.message);
+                    }
+                }
+            }
+        } catch (err) {
+            console.error("❌ Error leyendo V4:", err.message);
+        }
+    }
+
     // Insertar Semilla si la tabla alumnos está vacía (V2__seed.sql)
     try {
         const [{ total }] = await knex('alumnos').count('* as total');
@@ -742,8 +763,8 @@ app.get('/api/me', async (req, res) => {
             if (alumno && alumno.idlicenciaturas && alumno.semestre) {
                 const materias = await knex('Materias')
                     .where({ idlicenciaturas: alumno.idlicenciaturas, semestre: alumno.semestre })
-                    .select('materia');
-                materiasSemestre = materias.map(m => m.materia);
+                    .select('materia as nombre', 'clave');
+                materiasSemestre = materias;
             }
         }
 
@@ -760,11 +781,31 @@ app.get('/api/me', async (req, res) => {
             }
         }
 
+        let materiasInteresArr = materiasInteresStr ? materiasInteresStr.split(',') : [];
+
+        // Validar y corregir materias de interés si es asesorado
+        if (role === 'asesorado' && materiasSemestre.length > 0) {
+            const validClaves = materiasSemestre.map(m => m.clave);
+            let invalidDetected = false;
+            for (let clave of materiasInteresArr) {
+                if (!validClaves.includes(clave)) {
+                    invalidDetected = true;
+                    break;
+                }
+            }
+
+            if (invalidDetected) {
+                // Borrar las inválidas y poner la primera del semestre actual
+                materiasInteresArr = [materiasSemestre[0].clave];
+                await knex('Asesorados').where({ idalumnos: userId }).update({ materias: materiasInteresArr[0] });
+            }
+        }
+
         res.json({
             success: true,
             data: {
                 user: { ...userInfo, role, isMaestro, url_foto_perfil: urlFotoPerfil },
-                materias_interes: materiasInteresStr ? materiasInteresStr.split(',') : [],
+                materias_interes: materiasInteresArr,
                 materias_semestre: materiasSemestre
             }
         });
@@ -876,10 +917,11 @@ const uploadPerfil = multer({
     storage: multer.diskStorage({
         destination: (req, file, cb) => {
             const role = req.user && req.user.role === 'tutor' ? 'fotoPerfilT' : 'fotoPerfilA';
-            cb(null, `private/${role}`);
+            cb(null, path.join(__dirname, 'private', role));
         },
         filename: (req, file, cb) => {
-            cb(null, `pf_${Date.now()}_${file.originalname}`);
+            const ext = path.extname(file.originalname);
+            cb(null, `pf${req.user.nocontrol}${ext}`);
         }
     })
 });
@@ -887,10 +929,15 @@ const uploadPerfil = multer({
 app.post('/api/me/perfil', uploadPerfil.single('foto'), async (req, res) => {
     try {
         const userId = req.user.id;
-        const role = req.user.role;
         const isMaestro = req.user.isMaestro;
+        const role = req.user.role;
 
         const { telefono } = req.body;
+        
+        // Si se subió foto, ya se sobrescribió en el disco con el nombre pf{nocontrol}.ext.
+        // Opcionalmente podemos actualizar la BD si cambió la extensión, pero el usuario 
+        // solicitó que solo se sobrescriba la imagen. Haremos la actualización de la URL 
+        // en la BD por seguridad si la extensión es distinta, pero no fallará.
         const urlFoto = req.file ? (role === 'tutor' ? `fotoPerfilT/${req.file.filename}` : `fotoPerfilA/${req.file.filename}`) : null;
 
         const updateData = {};

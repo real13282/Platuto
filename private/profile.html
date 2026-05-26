@@ -132,7 +132,7 @@
     <div class="container">
         <!-- Volver al Dashboard (simulado) -->
         <div class="pt-4 pb-2">
-            <a href="#" class="text-gray-600 font-weight-bold" style="text-decoration: none;" id="backDashboardLink">
+            <a href="index.html" class="text-gray-600 font-weight-bold" style="text-decoration: none;" id="backDashboardLink">
                 <i class="fas fa-arrow-left mr-2"></i> Volver al Dashboard
             </a>
         </div>
@@ -207,7 +207,7 @@
             <div class="modal-content shadow-lg border-0" style="border-radius: 1rem;">
                 <div class="modal-header modal-header-custom border-0">
                     <h5 class="modal-title fw-bold" id="editMateriasModalLabel">Modificar Especialidad</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close btn-close-white" data-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body p-4">
                     <p class="text-secondary mb-4">Selecciona las materias que deseas impartir en tus tutorías. Los cambios se reflejarán inmediatamente.</p>
@@ -225,7 +225,7 @@
                     <div id="noMateriasMsg" class="text-muted text-center py-3 d-none">No hay materias disponibles para esta carrera/semestre.</div>
                 </div>
                 <div class="modal-footer border-top-0 pt-0 pb-4 pe-4">
-                    <button type="button" class="btn btn-secondary px-4 fw-bold" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-secondary px-4 fw-bold" data-dismiss="modal">Cancelar</button>
                     <button type="button" class="btn btn-primary px-4 fw-bold" style="background-color: #008B8B; border-color: #008B8B;" id="btnSaveMaterias">Guardar Cambios</button>
                 </div>
             </div>
@@ -238,9 +238,7 @@
             <div class="modal-content shadow-lg border-0" style="border-radius: 1rem;">
                 <div class="modal-header" style="background-color: #1a365d; color: white; border-radius: 1rem 1rem 0 0;">
                     <h5 class="modal-title font-weight-bold" id="editPerfilModalLabel">Editar Información</h5>
-                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
+                    <button type="button" class="btn-close btn-close-white" data-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body p-4">
                     <form id="formEditPerfil">
@@ -257,7 +255,7 @@
                         </div>
                     </form>
                 </div>
-                <div class="modal-footer border-top-0 pt-0 pb-4 pr-4">
+                <div class="modal-footer border-top-0 pt-0 pb-4 pe-4">
                     <button type="button" class="btn btn-secondary px-4 font-weight-bold" style="border-radius: 8px;" data-dismiss="modal">Cancelar</button>
                     <button type="button" class="btn btn-primary px-4 font-weight-bold" style="background-color: #1a365d; border-color: #1a365d; border-radius: 8px;" id="btnSavePerfil">Guardar</button>
                 </div>
@@ -271,65 +269,6 @@
     <script src="vendor/jquery-easing/jquery.easing.min.js"></script>
 
     <script>
-        // -------------------------------
-        // DATOS MOCK PARA SIMULAR API (demostración completa)
-        // Representa la base de datos persistente del usuario registrado
-        // y los planes de estudio. El "backend" simulado almacena los cambios.
-        // -------------------------------
-        
-        // Usuario actual (lo que el servidor devuelve en /api/me)
-        let currentUser = {
-            success: true,
-            data: {
-                user: {
-                    nombre: "Juan Pérez",
-                    nocontrol: "12345678",
-                    correo: "juan.perez@lameso.edu.mx",
-                    telefono: "4491234567",
-                    role: "tutor",          // "tutor" o "asesorado" (en la imagen es asesorado, pero podemos mostrar ambos)
-                    isMaestro: true,        // true: tutor maestro; false: tutor alumno. Para ejemplo usamos tutor maestro.
-                    url_foto_perfil: null
-                },
-                materias_interes: ["ADMIILI", "CONTILI", "FUNDPROGLI"]   // claves de materias guardadas
-            }
-        };
-        
-        // Planes de estudio simulados (carreras, semestres, materias con clave y nombre)
-        const planesEstudioMock = {
-            "Ingeniería en Sistemas Computacionales": {
-                1: [
-                    { clave: "FUNDPROGLI", nombre: "Fundamentos de Programación" },
-                    { clave: "MATDISC", nombre: "Matemáticas Discretas" },
-                    { clave: "ADMIILI", nombre: "Administración de Proyectos I" }
-                ],
-                2: [
-                    { clave: "ADMIILI", nombre: "Administración de Proyectos I" },
-                    { clave: "CONTILI", nombre: "Contabilidad Inicial" },
-                    { clave: "ESTRUCDAT", nombre: "Estructura de Datos" }
-                ],
-                3: [
-                    { clave: "CONTILI", nombre: "Contabilidad Inicial" },
-                    { clave: "BASEDATOS", nombre: "Bases de Datos" },
-                    { clave: "WEBAPPS", nombre: "Aplicaciones Web" }
-                ]
-            },
-            "Licenciatura en Administración": {
-                1: [
-                    { clave: "ADMIILI", nombre: "Introducción a la Administración" },
-                    { clave: "CONTILI", nombre: "Contabilidad Básica" },
-                    { clave: "ECOGRAL", nombre: "Economía General" }
-                ],
-                2: [
-                    { clave: "CONTILI", nombre: "Contabilidad Intermedia" },
-                    { clave: "ADMIILI", nombre: "Administración de Empresas" },
-                    { clave: "MERCA", nombre: "Mercadotecnia" }
-                ]
-            }
-        };
-        
-        // Variable global con datos del alumno completo (para obtener semestre en caso de tutor alumno)
-        let alumnoInfoMock = null;
-        
         // Variables de estado
         let userData = null;
         let selectedMateriasKeys = new Set();   // almacena claves de materias actuales
@@ -351,69 +290,12 @@
             });
         }
         
-        // --- SIMULACIÓN DE ENDPOINTS ---
-        async function mockFetch(endpoint, options = {}) {
-            const url = endpoint;
-            // GET /api/me
-            if (url === '/api/me' && (!options.method || options.method === 'GET')) {
-                return {
-                    ok: true,
-                    json: async () => ({ ...currentUser })
-                };
-            }
-            // PUT /api/me/tutor/materias
-            if (url === '/api/me/tutor/materias' && options.method === 'PUT') {
-                const body = JSON.parse(options.body);
-                if (body.materias) {
-                    // actualizar la data simulada
-                    currentUser.data.materias_interes = body.materias;
-                    return {
-                        ok: true,
-                        json: async () => ({ success: true, message: "Materias actualizadas" })
-                    };
-                }
-                return { ok: true, json: async () => ({ success: false, message: "Datos inválidos" }) };
-            }
-            // GET /api/planes-estudio (simula)
-            if (url === '/api/planes-estudio') {
-                return {
-                    ok: true,
-                    json: async () => ({ success: true, data: planesEstudioMock })
-                };
-            }
-            // GET /api/alumnos/:nocontrol (para tutor alumno, obtener su semestre y carrera)
-            if (url.startsWith('/api/alumnos/') && options.method !== 'PUT') {
-                const nocontrol = url.split('/').pop();
-                if (nocontrol === "12345678") {
-                    return {
-                        ok: true,
-                        json: async () => ({ 
-                            success: true, 
-                            data: { 
-                                semestre: 2, 
-                                nombre_carrera: "Ingeniería en Sistemas Computacionales",
-                                nocontrol: "12345678"
-                            } 
-                        })
-                    };
-                }
-            }
-            // Logout simulado
-            if (url === '/api/logout') {
-                return { ok: true, json: async () => ({ success: true }) };
-            }
-            // fallback
-            return { ok: true, json: async () => ({ success: false, message: "endpoint no simulado" }) };
-        }
-        
-        // función fetch wrapper que usa mock o real (aquí usamos mock para demostración completa)
+        // función fetch wrapper
         async function request(endpoint, options = {}) {
-            // Simulación de red
-            await new Promise(resolve => setTimeout(resolve, 300));
-            return mockFetch(endpoint, options);
+            return fetch(endpoint, options);
         }
         
-        // Cargar perfil principal
+
         async function loadProfile() {
             try {
                 document.getElementById('loader').classList.remove('d-none');
@@ -437,72 +319,39 @@
                     if (user.url_foto_perfil) {
                         profileImg.src = user.url_foto_perfil;
                     } else {
-                        profileImage.src = 'img/undraw_profile.svg';
+                        profileImg.src = 'img/undraw_profile.svg';
                     }
 
                     // Contact info
                     document.getElementById('profileEmail').textContent = user.correo || 'No especificado';
                     
                     const phoneEl = document.getElementById('profilePhone');
+                    const phoneContainer = document.getElementById('profilePhoneContainer');
                     if (user.telefono) {
                         phoneEl.textContent = user.telefono;
                         document.getElementById('inputEditTelefono').value = user.telefono;
+                        phoneContainer.classList.remove('d-none');
                     } else {
                         phoneEl.textContent = 'Sin registrar';
                         document.getElementById('inputEditTelefono').value = '';
+                        phoneContainer.classList.add('d-none');
                     }
 
                     // Role Badge
                     const badgeContainer = document.getElementById('profileRoleBadge');
-                    const btnEditMaterias = document.getElementById('btnEditMaterias');
-                    
-                    if (user.role === 'tutor') {
-                        badgeContainer.innerHTML = `<span class="badge badge-success badge-role shadow-sm"><i class="fas fa-chalkboard-teacher mr-2"></i>Tutor ${user.isMaestro ? 'Maestro' : 'Alumno'}</span>`;
-                        btnEditMaterias.classList.remove('d-none');
-                        btnEditMaterias.innerHTML = '<i class="fas fa-pen mr-1"></i> Modificar Especialidad';
-                    } else {
-                        badgeContainer.innerHTML = `<span class="badge badge-primary badge-role shadow-sm"><i class="fas fa-user-graduate mr-2"></i>Asesorado</span>`;
-                        btnEditMaterias.classList.remove('d-none');
-                        btnEditMaterias.innerHTML = '<i class="fas fa-pen mr-1"></i> Modificar Áreas';
-                    }
-
-                    // Materias list
-                    const materiasContainer = document.getElementById('materiasList');
-                    materiasContainer.innerHTML = '';
-                    if (userData.materias_interes && userData.materias_interes.length > 0) {
-                        userData.materias_interes.forEach(materia => {
-                            materiasContainer.innerHTML += `
-                                <div class="subject-badge">
-                                    <i class="fas fa-book"></i>
-                                    <span>${materia}</span> <!-- Mostrará la clave o nombre, preferible la clave si guardamos eso, pero el frontend asume que materias_interes tiene el string exacto. En realidad guarda CLAVES. Necesitaremos mapearlo. -->
-                                </div>
-                            `;
-                        });
-                    } else {
-                        materiasContainer.innerHTML = `<p class="text-muted text-center w-100 font-italic">No hay materias registradas.</p>`;
-                    }
-                    
-                    // Correo y teléfono
-                    document.getElementById('profileEmail').textContent = user.correo || 'No especificado';
-                    const phoneEl = document.getElementById('profilePhone');
-                    const phoneContainer = document.getElementById('profilePhoneContainer');
-                    if (user.telefono) {
-                        phoneEl.textContent = user.telefono;
-                        phoneContainer.classList.remove('d-none');
-                    } else {
-                        phoneContainer.classList.add('d-none');
-                    }
-                    
-                    // Badge según rol: si es tutor muestra "Asesor? / Tutor", si es asesorado muestra "Asesorado"
-                    const badgeContainer = document.getElementById('profileRoleBadge');
                     const editBtn = document.getElementById('btnEditMaterias');
+                    
                     if (user.role === 'tutor') {
                         badgeContainer.innerHTML = `<span class="badge bg-success badge-role shadow-sm"><i class="fas fa-chalkboard-user me-2"></i>Tutor ${user.isMaestro ? 'Docente' : 'Alumno Tutor'}</span>`;
                         editBtn.classList.remove('d-none');
+                        editBtn.innerHTML = '<i class="fas fa-pen me-1"></i> Modificar Especialidad';
                     } else {
                         badgeContainer.innerHTML = `<span class="badge bg-primary badge-role shadow-sm"><i class="fas fa-user-graduate me-2"></i>Asesorado</span>`;
-                        editBtn.classList.add('d-none');
+                        editBtn.classList.remove('d-none');
+                        editBtn.innerHTML = '<i class="fas fa-pen me-1"></i> Modificar Áreas de Oportunidad';
                     }
+                    
+                    await loadPlanesEstudioGlobal();
                     
                     // Cargar materias de interés actuales
                     selectedMateriasKeys.clear();
@@ -520,7 +369,6 @@
                         carreraGroup.classList.remove('d-none');
                         document.getElementById('editMateriasModalLabel').textContent = 'Modificar Especialidad';
                         
-                        await loadPlanesEstudio();
                         // Tratar de obtener semestre para Tutor Alumno
                         if (!user.isMaestro) {
                             const resAl = await fetch(`/api/alumnos/${user.nocontrol}`);
@@ -532,7 +380,7 @@
                                 Array.from(cSelect.options).forEach(o => {
                                     if(o.value.toLowerCase() === datAl.data.nombre_carrera.toLowerCase()) {
                                         o.selected = true;
-                                        renderCheckboxes();
+                                        renderCheckboxesForCarrera();
                                     }
                                 });
                             }
@@ -554,6 +402,42 @@
         }
         
         // Renderizar las materias con badges
+        window.removeSubject = async function(clave) {
+            Swal.fire({
+                title: '¿Eliminar materia?',
+                text: "¿Estás seguro de que deseas eliminar esta materia?",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar'
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    selectedMateriasKeys.delete(clave);
+                    const endpoint = userData.user.role === 'tutor' ? '/api/me/tutor/materias' : '/api/me/asesorado/materias';
+                    try {
+                        const response = await fetch(endpoint, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ materias: Array.from(selectedMateriasKeys) })
+                        });
+                        const resJson = await response.json();
+                        if (resJson.success) {
+                            showToast('success', 'Materia eliminada');
+                            loadProfile();
+                        } else {
+                            Swal.fire('Error', resJson.message, 'error');
+                            selectedMateriasKeys.add(clave); // revert
+                        }
+                    } catch (e) {
+                        Swal.fire('Error', 'Fallo al conectar', 'error');
+                        selectedMateriasKeys.add(clave); // revert
+                    }
+                }
+            });
+        };
+
         function renderMateriasBadges(materiasClaves = []) {
             const container = document.getElementById('materiasList');
             container.innerHTML = '';
@@ -577,9 +461,10 @@
                     }
                 }
                 container.innerHTML += `
-                    <div class="subject-badge">
+                    <div class="subject-badge pe-2">
                         <i class="fas fa-book-open"></i>
-                        <span>${displayName}</span>
+                        <span class="me-2">${displayName}</span>
+                        <i class="fas fa-times" style="cursor: pointer; color: #0d47a1;" onclick="removeSubject('${clave}')" title="Eliminar materia"></i>
                     </div>
                 `;
             });
@@ -703,7 +588,7 @@
             const ul = document.createElement('ul');
             ul.className = 'list-unstyled mt-2 pl-3 py-2';
 
-            materiasSem.forEach((materiaStr, idx) => {
+            materiasSem.forEach((materiaObj, idx) => {
                 const li = document.createElement('li');
                 li.className = 'custom-control custom-checkbox mb-2';
                 
@@ -711,18 +596,18 @@
                 inp.type = 'checkbox';
                 inp.className = 'custom-control-input';
                 inp.id = `mat_ase_${idx}`;
-                inp.value = materiaStr;
-                inp.checked = selectedMateriasKeys.has(materiaStr);
+                inp.value = materiaObj.clave;
+                inp.checked = selectedMateriasKeys.has(materiaObj.clave);
                 
                 inp.onchange = function() {
-                    if(this.checked) selectedMateriasKeys.add(materiaStr);
-                    else selectedMateriasKeys.delete(materiaStr);
+                    if(this.checked) selectedMateriasKeys.add(materiaObj.clave);
+                    else selectedMateriasKeys.delete(materiaObj.clave);
                 };
 
                 const lbl = document.createElement('label');
                 lbl.className = 'custom-control-label text-gray-700';
                 lbl.htmlFor = `mat_ase_${idx}`;
-                lbl.textContent = materiaStr;
+                lbl.innerHTML = `${materiaObj.nombre} <small class="text-muted">(${materiaObj.clave})</small>`;
 
                 li.appendChild(inp);
                 li.appendChild(lbl);
@@ -760,8 +645,8 @@
                 Swal.fire('Error', 'Fallo al conectar con el servidor', 'error');
                 return false;
             } finally {
-                btn.disabled = false;
-                btn.innerHTML = 'Guardar Cambios';
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = 'Guardar Cambios';
             }
         });
 
@@ -816,7 +701,7 @@
                 btn.disabled = false;
                 btn.innerHTML = 'Guardar';
             }
-        }
+        });
         
         // Event listeners
         document.getElementById('btnEditMaterias')?.addEventListener('click', () => {
@@ -828,24 +713,13 @@
             const modal = new bootstrap.Modal(document.getElementById('editMateriasModal'));
             modal.show();
         });
-        
-        document.getElementById('btnSaveMaterias')?.addEventListener('click', async () => {
-            await saveMaterias();
-            const modalEl = document.getElementById('editMateriasModal');
-            const modalInstance = bootstrap.Modal.getInstance(modalEl);
-            if (modalInstance) modalInstance.hide();
-        });
+
+        document.getElementById('carreraSelect')?.addEventListener('change', renderCheckboxesForCarrera);
         
         document.getElementById('logoutBtn')?.addEventListener('click', (e) => {
             e.preventDefault();
             Swal.fire('Sesión cerrada', 'Has cerrado sesión exitosamente.', 'info');
-            // Recargar simulación, reset a valores iniciales? (opcional)
-            setTimeout(() => location.reload(), 1500);
-        });
-        
-        document.getElementById('backDashboardLink')?.addEventListener('click', (e) => {
-            e.preventDefault();
-            Swal.fire('Dashboard', 'Redirigiendo al panel principal (simulado)', 'info');
+            setTimeout(() => window.location.href = '/api/logout', 1500);
         });
         
         // Inicializar

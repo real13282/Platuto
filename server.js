@@ -156,6 +156,27 @@ async function setupDatabase() {
         }
     }
 
+    // Ejecutar migración V5 (tabla asesoria) manual
+    const sqlV5Path = path.join(__dirname, 'migrations', 'V5__add_asesoria_columns.sql');
+    if (fs.existsSync(sqlV5Path)) {
+        try {
+            const v5Content = fs.readFileSync(sqlV5Path, 'utf8');
+            const v5Queries = v5Content.split(';').filter(q => q.trim() !== '');
+            for (let q of v5Queries) {
+                try {
+                    await knex.raw(q);
+                    console.log("✅ Migración V5 ejecutada:", q);
+                } catch (err) {
+                    if (!err.message.includes('duplicate column name')) {
+                        console.error("❌ Error en V5:", err.message);
+                    }
+                }
+            }
+        } catch (err) {
+            console.error("❌ Error leyendo V5:", err.message);
+        }
+    }
+
     // Insertar Semilla si la tabla alumnos está vacía (V2__seed.sql)
     try {
         const [{ total }] = await knex('alumnos').count('* as total');
@@ -454,8 +475,7 @@ app.post('/api/register/tutor', uploadTutorAlumno.fields([{ name: 'foto', maxCou
                         await knex('Tutorias').insert({
                             idtutor: tutorId,
                             idclases: materiaRow.idclases,
-                            fecha_hora: new Date().toISOString(),
-                            estado: 'Disponible'
+                            fecha_hora: new Date().toISOString()
                         });
                     }
                 }
@@ -574,8 +594,7 @@ app.post('/api/register/tutor_maestro',
                         await knex('Tutorias').insert({
                             idtutor: tutorId,
                             idclases: materiaRow.idclases,
-                            fecha_hora: new Date().toISOString(),
-                            estado: 'Disponible'
+                            fecha_hora: new Date().toISOString()
                         });
                     }
                 }
@@ -666,8 +685,6 @@ app.get('/api/tutorias', async (req, res) => {
                 'Materias.materia',
                 'Materias.clave',
                 'Tutorias.fecha_hora',
-                'Tutorias.estado',
-                'Tutorias.temas',
                 'Tutores.idTutores as id_tutor',
                 'Tutores.url_cv',
                 'Tutores.url_foto_perfil',
@@ -717,32 +734,174 @@ app.get('/api/tutorias', async (req, res) => {
 
 app.post('/api/tutorias/:id/solicitar', async (req, res) => {
     try {
+        const token = req.cookies.token;
+        if (!token) return res.status(401).json({ success: false, message: 'No autenticado. Por favor inicie sesión.' });
+        
+        let decoded;
+        try {
+            decoded = jwt.verify(token, SECRET_KEY);
+        } catch (e) {
+            return res.status(401).json({ success: false, message: 'Sesión inválida o expirada.' });
+        }
+
         const { id } = req.params;
         const { temas } = req.body;
+
+        const asesorado = await knex('Asesorados').where({ idalumnos: decoded.id }).first();
+        if (!asesorado) {
+            return res.status(403).json({ success: false, message: 'No estás registrado como asesorado.' });
+        }
 
         const tutoria = await knex('Tutorias').where({ idtutoria: id }).first();
         if (!tutoria) {
             return res.status(404).json({ success: false, message: 'Tutoría no encontrada' });
         }
 
-        if (tutoria.estado !== 'Disponible') {
-            return res.status(400).json({ success: false, message: 'Esta tutoría ya no está disponible' });
-        }
-
-        if (!temas || temas.trim().length < 30) {
-            return res.status(400).json({ success: false, message: 'Se requiere especificar temas con un mínimo de 30 caracteres.' });
-        }
-
-        if (temas.trim().length > 256) {
-            return res.status(400).json({ success: false, message: 'El texto de los temas no debe superar los 256 caracteres.' });
-        }
-
-        await knex('Tutorias').where({ idtutoria: id }).update({ estado: 'Solicitada', temas: temas.trim() });
+        // Insertar registro en la tabla asesoria
+        await knex('asesoria').insert({
+            idtutoria: id,
+            idasesorados: asesorado.idasesorados,
+            observacionAsesorado: temas.trim(),
+            status: 0
+        });
 
         res.json({ success: true, message: 'Tutoría solicitada exitosamente' });
     } catch (error) {
         console.error("Error al solicitar tutoría:", error);
         res.status(500).json({ success: false, message: 'Error interno en el servidor' });
+    }
+});
+
+// Nuevo endpoint para que el tutor vea las solicitudes de sus alumnos
+app.get('/api/tutor/solicitudes', async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const role = req.user.role;
+        const isMaestro = req.user.isMaestro;
+
+        if (role !== 'tutor') {
+            return res.status(403).json({ success: false, message: 'Acceso denegado' });
+        }
+
+        let tutor;
+        if (isMaestro) {
+            tutor = await knex('Tutores').where({ idmaestro: userId }).first();
+        } else {
+            tutor = await knex('Tutores').where({ idalumnos: userId }).first();
+        }
+
+        if (!tutor) {
+            return res.status(404).json({ success: false, message: 'Tutor no encontrado' });
+        }
+
+        const solicitudes = await knex('asesoria')
+            .join('Tutorias', 'asesoria.idtutoria', 'Tutorias.idtutoria')
+            .join('Materias', 'Tutorias.idclases', 'Materias.idclases')
+            .join('Asesorados', 'asesoria.idasesorados', 'Asesorados.idasesorados')
+            .join('Alumnos', 'Asesorados.idalumnos', 'Alumnos.idalumnos')
+            .where('Tutorias.idtutor', tutor.idTutores)
+            .select(
+                'asesoria.idAsesoria',
+                'asesoria.observacionAsesorado',
+                'asesoria.observacionTutor',
+                'asesoria.status',
+                'Tutorias.fecha_hora',
+                'Materias.materia',
+                'Materias.clave',
+                'Alumnos.nombre',
+                'Alumnos.apellidopat',
+                'Alumnos.apellidomat',
+                'Alumnos.nocontrol',
+                'Asesorados.url_foto_perfil',
+                'Alumnos.correo',
+                'Asesorados.telefono as telefono_asesorado',
+                'Alumnos.telefono as telefono_alumno'
+            );
+
+        res.json({ success: true, data: solicitudes });
+    } catch (error) {
+        console.error("Error al obtener solicitudes del tutor:", error);
+        res.status(500).json({ success: false, message: 'Error interno' });
+    }
+});
+
+// Endpoint para que el asesorado vea sus solicitudes
+app.get('/api/asesorado/solicitudes', async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const role = req.user.role;
+
+        if (role !== 'asesorado') {
+            return res.status(403).json({ success: false, message: 'Acceso denegado' });
+        }
+
+        const asesorado = await knex('Asesorados').where({ idalumnos: userId }).first();
+        if (!asesorado) {
+            return res.status(404).json({ success: false, message: 'Asesorado no encontrado' });
+        }
+
+        const solicitudes = await knex('asesoria')
+            .join('Tutorias', 'asesoria.idtutoria', 'Tutorias.idtutoria')
+            .join('Materias', 'Tutorias.idclases', 'Materias.idclases')
+            .join('Tutores', 'Tutorias.idtutor', 'Tutores.idTutores')
+            .leftJoin('Maestro', 'Tutores.idmaestro', 'Maestro.idmaestro')
+            .leftJoin('Alumnos', 'Tutores.idalumnos', 'Alumnos.idalumnos')
+            .where('asesoria.idasesorados', asesorado.idasesorados)
+            .select(
+                'asesoria.idAsesoria',
+                'asesoria.observacionAsesorado',
+                'asesoria.observacionTutor',
+                'asesoria.status',
+                'Tutorias.fecha_hora',
+                'Materias.materia',
+                'Materias.clave',
+                knex.raw("COALESCE(Maestro.nombre || ' ' || Maestro.apellidopat, Alumnos.nombre || ' ' || Alumnos.apellidopat) as tutor_nombre"),
+                'Tutores.url_foto_perfil'
+            );
+
+        res.json({ success: true, data: solicitudes });
+    } catch (error) {
+        console.error("Error al obtener solicitudes del asesorado:", error);
+        res.status(500).json({ success: false, message: 'Error interno' });
+    }
+});
+
+// Endpoint para aceptar asesoría
+app.post('/api/asesorias/:idAsesoria/aceptar', async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const role = req.user.role;
+        const { idAsesoria } = req.params;
+
+        if (role !== 'tutor') {
+            return res.status(403).json({ success: false, message: 'Acceso denegado' });
+        }
+
+        await knex('asesoria').where({ idAsesoria }).update({ status: 1 });
+        res.json({ success: true, message: 'Asesoría aceptada' });
+    } catch (error) {
+        console.error("Error al aceptar asesoría:", error);
+        res.status(500).json({ success: false, message: 'Error interno' });
+    }
+});
+
+// Endpoint para rechazar asesoría
+app.post('/api/asesorias/:idAsesoria/rechazar', async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const role = req.user.role;
+        const { idAsesoria } = req.params;
+        const { observacionTutor } = req.body;
+
+        if (role !== 'tutor') {
+            return res.status(403).json({ success: false, message: 'Acceso denegado' });
+        }
+
+        await knex('asesoria').where({ idAsesoria }).update({ status: 2, observacionTutor: observacionTutor || '' });
+        res.json({ success: true, message: 'Asesoría rechazada' });
+    } catch (error) {
+        console.error("Error al rechazar asesoría:", error);
+        res.status(500).json({ success: false, message: 'Error interno' });
     }
 });
 
@@ -878,8 +1037,7 @@ app.put('/api/me/tutor/materias', async (req, res) => {
                     await knex('Tutorias').insert({
                         idtutor: tutor.idTutores,
                         idclases: materiaRow.idclases,
-                        fecha_hora: new Date().toISOString(),
-                        estado: 'Disponible'
+                        fecha_hora: new Date().toISOString()
                     });
                 }
             }
@@ -890,7 +1048,7 @@ app.put('/api/me/tutor/materias', async (req, res) => {
             const materiaRow = await knex('Materias').where({ clave: claveMateria }).first();
             if (materiaRow) {
                 await knex('Tutorias')
-                    .where({ idtutor: tutor.idTutores, idclases: materiaRow.idclases, estado: 'Disponible' })
+                    .where({ idtutor: tutor.idTutores, idclases: materiaRow.idclases })
                     .del();
             }
         }

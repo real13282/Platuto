@@ -43,97 +43,39 @@
             <!-- Divider -->
             <hr class="sidebar-divider my-0">
 
-            <!-- Nav Item - Dashboard -->
-            <li class="nav-item active">
-                <a class="nav-link" href="index.html">
+                        <!-- Nav Item - Dashboard / Búsquedas -->
+            <li class="nav-item active nav-busquedas" style="display: none;">
+                <a class="nav-link" href="#" onclick="mostrarSeccion('busquedas'); return false;">
+                    <i class="fas fa-fw fa-search"></i>
+                    <span>Búsquedas</span></a>
+            </li>
+
+            <!-- Nav Item - Dashboard Tutor -->
+            <li class="nav-item active nav-tutor-dashboard" style="display: none;">
+                <a class="nav-link" href="#" onclick="mostrarSeccion('tutor-dashboard'); return false;">
                     <i class="fas fa-fw fa-tachometer-alt"></i>
-                    <span>Dashboard</span></a>
+                    <span>Dashboard Tutor</span></a>
             </li>
 
-            <!-- Divider -->
-            <hr class="sidebar-divider">
-
-            <!-- Heading -->
-            <div class="sidebar-heading">
-                Interface
-            </div>
-
-            <!-- Nav Item - Pages Collapse Menu -->
-            <li class="nav-item">
-                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseTwo"
-                    aria-expanded="true" aria-controls="collapseTwo">
-                    <i class="fas fa-fw fa-cog"></i>
-                    <span>Components</span>
-                </a>
-                <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
-                    <div class="bg-white py-2 collapse-inner rounded">
-                        <h6 class="collapse-header">Custom Components:</h6>
-                        <a class="collapse-item" href="buttons.html">Buttons</a>
-                        <a class="collapse-item" href="cards.html">Cards</a>
-                    </div>
-                </div>
+            <!-- Nav Item - Pendientes -->
+            <li class="nav-item nav-pendientes" style="display: none;">
+                <a class="nav-link" href="#" onclick="mostrarSeccion('pendientes'); return false;">
+                    <i class="fas fa-fw fa-clock"></i>
+                    <span>Solicitudes Pendientes</span></a>
             </li>
 
-            <!-- Nav Item - Utilities Collapse Menu -->
-            <li class="nav-item">
-                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseUtilities"
-                    aria-expanded="true" aria-controls="collapseUtilities">
-                    <i class="fas fa-fw fa-wrench"></i>
-                    <span>Utilities</span>
-                </a>
-                <div id="collapseUtilities" class="collapse" aria-labelledby="headingUtilities"
-                    data-parent="#accordionSidebar">
-                    <div class="bg-white py-2 collapse-inner rounded">
-                        <h6 class="collapse-header">Custom Utilities:</h6>
-                        <a class="collapse-item" href="utilities-color.html">Colors</a>
-                        <a class="collapse-item" href="utilities-border.html">Borders</a>
-                        <a class="collapse-item" href="utilities-animation.html">Animations</a>
-                        <a class="collapse-item" href="utilities-other.html">Other</a>
-                    </div>
-                </div>
+            <!-- Nav Item - Aceptadas -->
+            <li class="nav-item nav-aceptadas" style="display: none;">
+                <a class="nav-link" href="#" onclick="mostrarSeccion('aceptadas'); return false;">
+                    <i class="fas fa-fw fa-check-circle"></i>
+                    <span>Solicitudes Aceptadas</span></a>
             </li>
 
-            <!-- Divider -->
-            <hr class="sidebar-divider">
-
-            <!-- Heading -->
-            <div class="sidebar-heading">
-                Addons
-            </div>
-
-            <!-- Nav Item - Pages Collapse Menu -->
-            <li class="nav-item">
-                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapsePages"
-                    aria-expanded="true" aria-controls="collapsePages">
-                    <i class="fas fa-fw fa-folder"></i>
-                    <span>Pages</span>
-                </a>
-                <div id="collapsePages" class="collapse" aria-labelledby="headingPages" data-parent="#accordionSidebar">
-                    <div class="bg-white py-2 collapse-inner rounded">
-                        <h6 class="collapse-header">Login Screens:</h6>
-                        <a class="collapse-item" href="login.html">Login</a>
-                        <a class="collapse-item" href="register.html">Register</a>
-                        <a class="collapse-item" href="forgot-password.html">Forgot Password</a>
-                        <div class="collapse-divider"></div>
-                        <h6 class="collapse-header">Other Pages:</h6>
-                        <a class="collapse-item" href="404.html">404 Page</a>
-                        <a class="collapse-item" href="blank.html">Blank Page</a>
-                    </div>
-                </div>
-            </li>
-
-            <!-- Nav Item - Charts -->
-            <li class="nav-item">
-                <a class="nav-link" href="charts.html">
-                    <i class="fas fa-fw fa-chart-area"></i>
-                    <span>Charts</span></a>
-            </li>
-
-            <!-- Nav Item - Tables -->
-            <li class="nav-item">
-                <a class="nav-link" href="tables.html">
-                    <i class="fas fa-fw fa-table"></i>
-                    <span>Tables</span></a>
+            <!-- Nav Item - Rechazadas -->
+            <li class="nav-item nav-rechazadas" style="display: none;">
+                <a class="nav-link" href="#" onclick="mostrarSeccion('rechazadas'); return false;">
+                    <i class="fas fa-fw fa-times-circle"></i>
+                    <span>Solicitudes Rechazadas</span></a>
             </li>
 
             <!-- Divider -->
@@ -367,14 +309,46 @@
                 <!-- Begin Page Content -->
                 <div class="container-fluid">
 
-                    <!-- Page Heading -->
-                    <div class="d-sm-flex align-items-center justify-content-between mb-4">
-                        <h1 class="h3 mb-0 text-gray-800">Buscador de Tutorías Disponibles</h1>
+                                        <!-- SECCIÓN: Dashboard Tutor -->
+                    <div id="tutor-dashboard-section" class="seccion-vista" style="display: none;">
+                        <h1 class="h4 mb-4 text-gray-800 border-bottom pb-2"><i class="fas fa-inbox text-primary mr-2"></i>Tus Solicitudes Pendientes</h1>
+                        <div class="row mb-5" id="solicitudesTutorPendientesContainer"></div>
+                        <div class="d-sm-flex align-items-center justify-content-between mb-4 mt-5">
+                            <h1 class="h3 mb-0 text-gray-800">Tus Tutorías (Buscador Global)</h1>
+                        </div>
+                        <div class="row" id="materiasTutorContainer"></div>
                     </div>
 
-                    <!-- Resultados de Búsqueda / Tutorías -->
-                    <div class="row" id="materiasContainer">
-                        <!-- JS populate here -->
+                    <!-- SECCIÓN: Búsquedas (Para Alumnos) -->
+                    <div id="busquedas-section" class="seccion-vista" style="display: none;">
+                        <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                            <h1 class="h3 mb-0 text-gray-800">Buscador de Tutorías Disponibles</h1>
+                        </div>
+                        <div class="row" id="materiasContainer"></div>
+                    </div>
+
+                    <!-- SECCIÓN: Solicitudes Pendientes -->
+                    <div id="pendientes-section" class="seccion-vista" style="display: none;">
+                        <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                            <h1 class="h3 mb-0 text-gray-800">Solicitudes Pendientes</h1>
+                        </div>
+                        <div class="row" id="pendientesContainer"></div>
+                    </div>
+
+                    <!-- SECCIÓN: Solicitudes Aceptadas -->
+                    <div id="aceptadas-section" class="seccion-vista" style="display: none;">
+                        <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                            <h1 class="h3 mb-0 text-gray-800">Solicitudes Aceptadas</h1>
+                        </div>
+                        <div class="row" id="aceptadasContainer"></div>
+                    </div>
+
+                    <!-- SECCIÓN: Solicitudes Rechazadas -->
+                    <div id="rechazadas-section" class="seccion-vista" style="display: none;">
+                        <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                            <h1 class="h3 mb-0 text-gray-800">Solicitudes Rechazadas</h1>
+                        </div>
+                        <div class="row" id="rechazadasContainer"></div>
                     </div>
 
                 </div>
@@ -501,36 +475,20 @@
     <!-- Custom scripts for all pages-->
     <script src="js/sb-admin-2.min.js"></script>
 
-    <!-- Page level plugins -->
-    <script src="vendor/chart.js/Chart.min.js"></script>
 
-    <!-- Page level custom scripts -->
-    <script src="js/demo/chart-area-demo.js"></script>
-    <script src="js/demo/chart-pie-demo.js"></script>
 
     <!-- Cargar Tutorías Disponibles y Perfil -->
     <script>
-        let todasLasTutorias = [];
+                let todasLasTutorias = [];
+
+        function mostrarSeccion(seccionId) {
+            document.querySelectorAll('.seccion-vista').forEach(el => el.style.display = 'none');
+            const section = document.getElementById(seccionId + '-section');
+            if (section) section.style.display = 'block';
+        }
 
         function abrirModalDetalles(tutoria) {
-            // Mostrar temas solicitados si ya está solicitada
-            const temasContainer = document.getElementById('modalTemasContainer');
-            if (temasContainer) {
-                if (tutoria.estado === 'Solicitada' && tutoria.temas) {
-                    temasContainer.innerHTML = `
-                        <div class="card shadow-sm border-left-warning mb-4" style="border-radius: 12px;">
-                            <div class="card-body">
-                                <h6 class="font-weight-bold text-warning mb-1"><i class="fas fa-comment-dots mr-2"></i>Temas Solicitados</h6>
-                                <p class="text-gray-800 small mb-0 font-italic">"${tutoria.temas}"</p>
-                            </div>
-                        </div>
-                    `;
-                    temasContainer.style.display = 'block';
-                } else {
-                    temasContainer.innerHTML = '';
-                    temasContainer.style.display = 'none';
-                }
-            }
+            const temasContainer = document.getElementById('modalTemasContainer'); if (temasContainer) temasContainer.style.display = 'none';
 
             // Rellenar datos
             document.getElementById('modalTutorNombre').textContent = tutoria.tutor_nombre;
@@ -613,21 +571,23 @@
             }
             
             // Botón Solicitar Tutoría
-            const btnSolicitar = document.getElementById('btnSolicitarTutoria');
-            if (tutoria.estado === 'Solicitada') {
-                btnSolicitar.disabled = true;
-                btnSolicitar.className = 'btn btn-secondary px-4 font-weight-bold';
-                btnSolicitar.innerHTML = 'Ya Solicitada';
-            } else {
-                btnSolicitar.disabled = false;
-                btnSolicitar.className = 'btn btn-success px-4 font-weight-bold';
-                btnSolicitar.innerHTML = 'Solicitar Tutoría';
+                        const btnSolicitar = document.getElementById('btnSolicitarTutoria');
+            btnSolicitar.disabled = false;
+            btnSolicitar.className = 'btn btn-success px-4 font-weight-bold';
+            btnSolicitar.innerHTML = 'Solicitar Tutoría';
                 
                 // Limpiar event listeners viejos y asociar el nuevo
                 const nuevoBtn = btnSolicitar.cloneNode(true);
                 btnSolicitar.parentNode.replaceChild(nuevoBtn, btnSolicitar);
                 
                 nuevoBtn.addEventListener('click', async () => {
+                    // Evitar que el foco se quede atrapado en el SweetAlert cuando se cierra
+                    $(document).on('hidden.bs.modal', function () {
+                        if ($('.swal2-container').length) {
+                            $(document).off('focusin.bs.modal');
+                        }
+                    });
+
                     // Evitar que Bootstrap bloquee el foco del SweetAlert2 sin cerrar el modal de fondo
                     $(document).off('focusin.bs.modal');
 
@@ -752,81 +712,27 @@
                         }
                     }
                 });
-            }
             
             // Mostrar modal
             $('#tutoriaModal').modal('show');
         }
 
-        function renderTutorias(tutorias) {
-            const container = document.getElementById('materiasContainer');
-            container.innerHTML = ''; // Limpiar
+        
 
-            if (tutorias.length > 0) {
-                tutorias.forEach(tutoria => {
-                    const col = document.createElement('div');
-                    col.className = 'col-xl-3 col-md-6 mb-4 tutoria-card';
-                    col.dataset.materia = tutoria.materia.toLowerCase();
-
-                    const fecha = tutoria.fecha_hora ? new Date(tutoria.fecha_hora).toLocaleString('es-MX', { dateStyle: 'short', timeStyle: 'short' }) : 'Fecha por definir';
-
-                    // Si está solicitada, usamos un estilo diferente
-                    const esSolicitada = tutoria.estado === 'Solicitada';
-                    const borderClass = esSolicitada ? 'border-left-warning' : 'border-left-success';
-                    const badgeHtml = esSolicitada ? '<span class="badge badge-warning float-right ml-1">Solicitada</span>' : '<span class="badge badge-success float-right ml-1">Disponible</span>';
-
-                    col.innerHTML = `
-                        <div class="card ${borderClass} shadow h-100 py-2 hover-card" style="cursor: pointer; transition: transform 0.2s;">
-                            <div class="card-body">
-                                <div class="row no-gutters align-items-center">
-                                    <div class="col mr-2">
-                                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                                            ${tutoria.clave}
-                                            ${badgeHtml}
-                                        </div>
-                                        <div class="h6 mb-1 font-weight-bold text-gray-800">${tutoria.materia}</div>
-                                        <div class="text-xs text-gray-500 mb-1"><i class="fas fa-user fa-sm fa-fw mr-1"></i>${tutoria.tutor_nombre}</div>
-                                        <div class="text-xs text-gray-500"><i class="fas fa-calendar fa-sm fa-fw mr-1"></i>${fecha}</div>
-                                    </div>
-                                    <div class="col-auto">
-                                        <i class="fas fa-chalkboard-teacher fa-2x text-gray-300"></i>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                    // Efecto hover
-                    col.querySelector('.card').addEventListener('mouseenter', function() { this.style.transform = 'scale(1.03)'; });
-                    col.querySelector('.card').addEventListener('mouseleave', function() { this.style.transform = 'scale(1)'; });
-
-                    // Abrir modal al hacer click
-                    col.querySelector('.card').addEventListener('click', () => {
-                        abrirModalDetalles(tutoria);
-                    });
-
-                    container.appendChild(col);
-                });
-            } else {
-                container.innerHTML = `
-                    <div class="col-12 text-center mt-5">
-                        <i class="fas fa-search text-gray-300" style="font-size: 4rem; margin-bottom: 1rem;"></i>
-                        <h4 class="text-gray-500">No se encontraron tutorías.</h4>
-                    </div>
-                `;
-            }
-        }
 
         function filterTutorias(query) {
+            const isTutor = document.querySelector('.nav-tutor-dashboard').style.display === 'block';
+            const targetId = isTutor ? 'materiasTutorContainer' : 'materiasContainer';
             const q = query.toLowerCase().trim();
             if (!q) {
-                renderTutorias(todasLasTutorias);
+                renderTutorias(todasLasTutorias, targetId);
                 return;
             }
             const filtradas = todasLasTutorias.filter(t =>
                 t.materia.toLowerCase().includes(q) ||
                 (t.clave && t.clave.toLowerCase().includes(q))
             );
-            renderTutorias(filtradas);
+            renderTutorias(filtradas, targetId);
         }
 
         document.addEventListener('DOMContentLoaded', async () => {
@@ -843,6 +749,16 @@
                         const navUserFoto = document.getElementById('navUserFoto');
                         if (navUserName) navUserName.textContent = user.nombre || 'Usuario';
                         if (navUserFoto && user.url_foto_perfil) navUserFoto.src = '/' + user.url_foto_perfil;
+                        
+                                                if (user.role === 'tutor') {
+                            document.querySelectorAll('.nav-tutor-dashboard, .nav-pendientes, .nav-aceptadas, .nav-rechazadas').forEach(el => el.style.display = 'block');
+                            mostrarSeccion('tutor-dashboard');
+                            cargarSolicitudesTutor();
+                        } else if (user.role === 'asesorado') {
+                            document.querySelectorAll('.nav-busquedas, .nav-pendientes, .nav-aceptadas, .nav-rechazadas').forEach(el => el.style.display = 'block');
+                            mostrarSeccion('busquedas');
+                            cargarSolicitudesAsesorado();
+                        }
                     }
 
                     const menu = document.getElementById('materiasFilterMenu');
@@ -874,7 +790,12 @@
 
                 if (resultTut.success && resultTut.data) {
                     todasLasTutorias = resultTut.data;
-                    renderTutorias(todasLasTutorias);
+                    const isTutor = resultMe.success && resultMe.data && resultMe.data.user && resultMe.data.user.role === 'tutor';
+                    if (isTutor) {
+                        renderTutorias(todasLasTutorias, 'materiasTutorContainer');
+                    } else {
+                        renderTutorias(todasLasTutorias);
+                    }
                 }
 
                 // Lógica de Búsqueda Desktop
@@ -913,6 +834,239 @@
                 console.error("Error cargando datos:", error);
             }
         });
+
+        
+        async function aceptarSolicitud(id) {
+            try {
+                const res = await fetch(`/api/asesorias/${id}/aceptar`, { method: 'POST' });
+                const data = await res.json();
+                if(data.success) {
+                    Swal.fire('Éxito', 'Asesoría aceptada', 'success');
+                    cargarSolicitudesTutor();
+                } else {
+                    Swal.fire('Error', data.message, 'error');
+                }
+            } catch(e) {
+                console.error(e);
+            }
+        }
+
+        async function rechazarSolicitud(id) {
+            const { value: observacionTutor } = await Swal.fire({
+                title: 'Motivo de rechazo',
+                input: 'textarea',
+                inputPlaceholder: 'Escribe por qué rechazas la solicitud...',
+                showCancelButton: true,
+                confirmButtonText: 'Rechazar',
+                cancelButtonText: 'Cancelar'
+            });
+
+            if (observacionTutor !== undefined) {
+                try {
+                    const res = await fetch(`/api/asesorias/${id}/rechazar`, { 
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ observacionTutor })
+                    });
+                    const data = await res.json();
+                    if(data.success) {
+                        Swal.fire('Éxito', 'Asesoría rechazada', 'success');
+                        cargarSolicitudesTutor();
+                    } else {
+                        Swal.fire('Error', data.message, 'error');
+                    }
+                } catch(e) {
+                    console.error(e);
+                }
+            }
+        }
+
+        function generarCardSolicitud(sol, esTutor) {
+            const fecha = sol.fecha_hora ? new Date(sol.fecha_hora).toLocaleString('es-MX', { dateStyle: 'short', timeStyle: 'short' }) : 'Fecha no definida';
+            const foto = sol.url_foto_perfil ? '/' + sol.url_foto_perfil : 'img/undraw_profile.svg';
+            
+            let statusBadge = '';
+            let borderColor = '';
+            if (sol.status === 0) {
+                statusBadge = '<span class="badge badge-warning float-right">Pendiente</span>';
+                borderColor = 'border-left-warning';
+            } else if (sol.status === 1) {
+                statusBadge = '<span class="badge badge-success float-right">Aceptada</span>';
+                borderColor = 'border-left-success';
+            } else {
+                statusBadge = '<span class="badge badge-danger float-right">Rechazada</span>';
+                borderColor = 'border-left-danger';
+            }
+
+            let personaNombre = esTutor ? `${sol.nombre} ${sol.apellidopat}` : sol.tutor_nombre;
+            let personaCorreo = sol.correo || 'N/A';
+            let personaTel = sol.telefono_asesorado || sol.telefono_alumno || 'N/A';
+
+            let buttonsHTML = '';
+            if (esTutor && sol.status === 0) {
+                buttonsHTML = `
+                    <div class="mt-3 d-flex justify-content-end">
+                        <button class="btn btn-sm btn-success mr-2" onclick="aceptarSolicitud(${sol.idAsesoria})"><i class="fas fa-check mr-1"></i>Aceptar</button>
+                        <button class="btn btn-sm btn-danger" onclick="rechazarSolicitud(${sol.idAsesoria})"><i class="fas fa-times mr-1"></i>Rechazar</button>
+                    </div>
+                `;
+            }
+
+            let rechazoHTML = '';
+            if (sol.status === 2 && sol.observacionTutor) {
+                rechazoHTML = `
+                    <div class="text-sm text-danger bg-light p-2 rounded mt-2 border-left border-danger">
+                        <strong>Motivo Rechazo:</strong> ${sol.observacionTutor}
+                    </div>
+                `;
+            }
+
+            return `
+                <div class="col-xl-4 col-md-6 mb-4">
+                    <div class="card ${borderColor} shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="text-xs font-weight-bold text-uppercase mb-1" style="color: #5a5c69;">
+                                ${sol.clave} - ${sol.materia}
+                                ${statusBadge}
+                            </div>
+                            <div class="mb-2 d-flex align-items-center mt-2">
+                                <img class="img-profile rounded-circle border" src="${foto}" style="width:30px; height:30px; object-fit:cover; margin-right:8px;" onerror="this.src='img/undraw_profile.svg'">
+                                <div class="h6 mb-0 font-weight-bold text-gray-800">${personaNombre}</div>
+                            </div>
+                            <div class="text-xs text-gray-600 mb-2">
+                                <i class="fas fa-calendar mr-1"></i> ${fecha}
+                            </div>
+                            <div class="text-sm font-italic text-gray-700 bg-light p-2 rounded border-left border-secondary mt-2">
+                                " ${sol.observacionAsesorado || 'Sin observaciones'} "
+                            </div>
+                            ${rechazoHTML}
+                            ${buttonsHTML}
+                            <div class="text-xs text-gray-400 mt-3 text-right">
+                                ID Solicitud: #${sol.idAsesoria}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        async function cargarSolicitudesTutor() {
+            try {
+                const res = await fetch('/api/tutor/solicitudes');
+                const result = await res.json();
+                
+                const pendientesContainer = document.getElementById('solicitudesTutorPendientesContainer');
+                const aceptadasContainer = document.getElementById('aceptadasContainer');
+                const rechazadasContainer = document.getElementById('rechazadasContainer');
+                
+                pendientesContainer.innerHTML = '';
+                aceptadasContainer.innerHTML = '';
+                rechazadasContainer.innerHTML = '';
+                
+                if (result.success && result.data) {
+                    // Populate Tutorias Activas in Tutor Dashboard
+                    // document.getElementById('materiasTutorContainer').innerHTML = '';
+                    // renderTutorias(todasLasTutorias, 'materiasTutorContainer');
+
+                    let pend = 0, acep = 0, rech = 0;
+                    result.data.forEach(sol => {
+                        const html = generarCardSolicitud(sol, true);
+                        if (sol.status === 0) { pendientesContainer.innerHTML += html; pend++; }
+                        else if (sol.status === 1) { aceptadasContainer.innerHTML += html; acep++; }
+                        else { rechazadasContainer.innerHTML += html; rech++; }
+                    });
+
+                    if (pend === 0) pendientesContainer.innerHTML = '<div class="col-12 text-center text-gray-500 py-3"><p>No tienes solicitudes pendientes.</p></div>';
+                    if (acep === 0) aceptadasContainer.innerHTML = '<div class="col-12 text-center text-gray-500 py-3"><p>No tienes solicitudes aceptadas.</p></div>';
+                    if (rech === 0) rechazadasContainer.innerHTML = '<div class="col-12 text-center text-gray-500 py-3"><p>No tienes solicitudes rechazadas.</p></div>';
+                }
+            } catch (err) {
+                console.error("Error cargando solicitudes:", err);
+            }
+        }
+
+        async function cargarSolicitudesAsesorado() {
+            try {
+                const res = await fetch('/api/asesorado/solicitudes');
+                const result = await res.json();
+                
+                const pendientesContainer = document.getElementById('pendientesContainer');
+                const aceptadasContainer = document.getElementById('aceptadasContainer');
+                const rechazadasContainer = document.getElementById('rechazadasContainer');
+                
+                pendientesContainer.innerHTML = '';
+                aceptadasContainer.innerHTML = '';
+                rechazadasContainer.innerHTML = '';
+                
+                if (result.success && result.data) {
+                    let pend = 0, acep = 0, rech = 0;
+                    result.data.forEach(sol => {
+                        const html = generarCardSolicitud(sol, false);
+                        if (sol.status === 0) { pendientesContainer.innerHTML += html; pend++; }
+                        else if (sol.status === 1) { aceptadasContainer.innerHTML += html; acep++; }
+                        else { rechazadasContainer.innerHTML += html; rech++; }
+                    });
+
+                    if (pend === 0) pendientesContainer.innerHTML = '<div class="col-12 text-center text-gray-500 py-3"><p>No tienes solicitudes pendientes.</p></div>';
+                    if (acep === 0) aceptadasContainer.innerHTML = '<div class="col-12 text-center text-gray-500 py-3"><p>No tienes solicitudes aceptadas.</p></div>';
+                    if (rech === 0) rechazadasContainer.innerHTML = '<div class="col-12 text-center text-gray-500 py-3"><p>No tienes solicitudes rechazadas.</p></div>';
+                }
+            } catch (err) {
+                console.error("Error cargando solicitudes asesorado:", err);
+            }
+        }
+        
+        // Sobrescribir renderTutorias para aceptar contenedor custom
+        function renderTutorias(tutorias, targetId = 'materiasContainer') {
+            const container = document.getElementById(targetId);
+            if (!container) return;
+            container.innerHTML = ''; 
+
+            if (tutorias.length > 0) {
+                tutorias.forEach(tutoria => {
+                    const col = document.createElement('div');
+                    col.className = 'col-xl-3 col-md-6 mb-4 tutoria-card';
+                    col.dataset.materia = tutoria.materia.toLowerCase();
+
+                    const fecha = tutoria.fecha_hora ? new Date(tutoria.fecha_hora).toLocaleString('es-MX', { dateStyle: 'short', timeStyle: 'short' }) : 'Fecha por definir';
+                    const borderClass = 'border-left-success';
+                    const badgeHtml = '<span class="badge badge-success float-right ml-1">Disponible</span>';
+
+                    col.innerHTML = `
+                        <div class="card ${borderClass} shadow h-100 py-2 hover-card" style="cursor: pointer; transition: transform 0.2s;">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                            ${tutoria.clave}
+                                            ${badgeHtml}
+                                        </div>
+                                        <div class="h6 mb-1 font-weight-bold text-gray-800">${tutoria.materia}</div>
+                                        <div class="text-xs text-gray-500 mb-1"><i class="fas fa-user fa-sm fa-fw mr-1"></i>${tutoria.tutor_nombre}</div>
+                                        <div class="text-xs text-gray-500"><i class="fas fa-calendar fa-sm fa-fw mr-1"></i>${fecha}</div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="fas fa-chalkboard-teacher fa-2x text-gray-300"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    col.querySelector('.card').addEventListener('mouseenter', function() { this.style.transform = 'scale(1.03)'; });
+                    col.querySelector('.card').addEventListener('mouseleave', function() { this.style.transform = 'scale(1)'; });
+                    col.querySelector('.card').addEventListener('click', () => { abrirModalDetalles(tutoria); });
+                    container.appendChild(col);
+                });
+            } else {
+                container.innerHTML = `
+                    <div class="col-12 text-center mt-5">
+                        <i class="fas fa-search text-gray-300" style="font-size: 4rem; margin-bottom: 1rem;"></i>
+                        <h4 class="text-gray-500">No se encontraron tutorías.</h4>
+                    </div>
+                `;
+            }
+        }
+
     </script>
 
 </body>

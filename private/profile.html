@@ -511,7 +511,7 @@
             const semestresNumeros = Object.keys(semestresObj).map(Number).sort((a,b)=>a-b);
             let semestreLimit = semestresNumeros.length;
             if (currentUserRole === 'tutor' && !isMaestro && alumnoSemestre) {
-                semestreLimit = alumnoSemestre;
+                semestreLimit = alumnoSemestre - 1;
             }
             
             for (let sem of semestresNumeros) {

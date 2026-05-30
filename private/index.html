@@ -663,52 +663,24 @@
                     });
                     
                     if (confirmAction.isConfirmed) {
-                        try {
-                            const response = await fetch(`/api/tutorias/${tutoria.idtutoria}/solicitar`, {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json'
-                                },
-                                body: JSON.stringify({ temas: confirmAction.value })
-                            });
-                            
-                            const result = await response.json();
-                            if (result.success) {
-                                await Swal.fire({
-                                    title: '¡Éxito!',
-                                    text: result.message || 'Tutoría solicitada correctamente.',
-                                    icon: 'success',
-                                    confirmButtonColor: '#28a745'
-                                });
-                                
-                                // Cerrar el modal de detalles al completarse con éxito
-                                $('#tutoriaModal').modal('hide');
-                                
-                                // Refrescar la lista de tutorías
-                                const responseTut = await fetch('/api/tutorias');
-                                const resultTut = await responseTut.json();
-                                if (resultTut.success && resultTut.data) {
-                                    todasLasTutorias = resultTut.data;
-                                    // Conservar el término de búsqueda actual
-                                    const searchInput = document.getElementById('searchInput');
-                                    filterTutorias(searchInput ? searchInput.value : '');
-                                }
-                            } else {
-                                Swal.fire({
-                                    title: 'Error',
-                                    text: result.message || 'No se pudo solicitar la tutoría.',
-                                    icon: 'error',
-                                    confirmButtonColor: '#dc3545'
-                                });
+                        const temas = confirmAction.value;
+                        const ok = await gestionarBorradorIA(
+                            `/api/tutorias/${tutoria.idtutoria}/draft-solicitar`,
+                            `/api/tutorias/${tutoria.idtutoria}/solicitar`,
+                            { temas },
+                            { temas },
+                            'Correo de Solicitud',
+                            'Tutoría solicitada correctamente.'
+                        );
+                        if (ok) {
+                            $('#tutoriaModal').modal('hide');
+                            const responseTut = await fetch('/api/tutorias');
+                            const resultTut = await responseTut.json();
+                            if (resultTut.success && resultTut.data) {
+                                todasLasTutorias = resultTut.data;
+                                const searchInput = document.getElementById('searchInput');
+                                filterTutorias(searchInput ? searchInput.value : '');
                             }
-                        } catch (error) {
-                            console.error("Error al solicitar tutoría:", error);
-                            Swal.fire({
-                                title: 'Error de conexión',
-                                text: 'No se pudo establecer conexión con el servidor.',
-                                icon: 'error',
-                                confirmButtonColor: '#dc3545'
-                            });
                         }
                     }
                 });
@@ -836,19 +808,105 @@
         });
 
         
-        async function aceptarSolicitud(id) {
-            try {
-                const res = await fetch(`/api/asesorias/${id}/aceptar`, { method: 'POST' });
-                const data = await res.json();
-                if(data.success) {
-                    Swal.fire('Éxito', 'Asesoría aceptada', 'success');
-                    cargarSolicitudesTutor();
-                } else {
-                    Swal.fire('Error', data.message, 'error');
+        async function gestionarBorradorIA(draftEndpoint, finalEndpoint, payloadDraft, payloadFinal, modalTitle, finalSuccessMsg) {
+            let draftGenerado = '';
+            let enviar = false;
+            
+            while (!enviar) {
+                Swal.fire({
+                    title: 'Generando correo con IA...',
+                    text: 'Espera un momento, Platuto está redactando...',
+                    allowOutsideClick: false,
+                    didOpen: () => { Swal.showLoading(); }
+                });
+
+                try {
+                    const res = await fetch(draftEndpoint, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payloadDraft)
+                    });
+                    const data = await res.json();
+                    
+                    if (!data.success) {
+                        Swal.fire('Error', data.message || 'No se pudo generar el correo.', 'error');
+                        return false;
+                    }
+                    
+                    draftGenerado = data.draft;
+                    
+                    const result = await Swal.fire({
+                        title: modalTitle,
+                        html: `
+                            <p class="small text-muted text-left mb-2">Revisa y edita el correo generado por Platuto antes de enviarlo:</p>
+                            <textarea id="swal-draft-email" class="form-control" rows="8" style="font-size: 0.9rem;">${draftGenerado}</textarea>
+                        `,
+                        width: '600px',
+                        showCancelButton: true,
+                        showDenyButton: true,
+                        confirmButtonText: '<i class="fas fa-paper-plane mr-1"></i> Enviar Correo',
+                        denyButtonText: '<i class="fas fa-sync-alt mr-1"></i> Generar Otro',
+                        cancelButtonText: 'Cancelar',
+                        confirmButtonColor: '#28a745',
+                        denyButtonColor: '#17a2b8',
+                        preConfirm: () => {
+                            return document.getElementById('swal-draft-email').value;
+                        }
+                    });
+
+                    if (result.isConfirmed) {
+                        payloadFinal.mensajeAIGenerado = result.value;
+                        enviar = true;
+                    } else if (result.isDenied) {
+                        continue;
+                    } else {
+                        return false;
+                    }
+                } catch (e) {
+                    console.error(e);
+                    Swal.fire('Error', 'Problema de conexión con el servidor', 'error');
+                    return false;
                 }
-            } catch(e) {
-                console.error(e);
             }
+
+            Swal.fire({
+                title: 'Enviando...',
+                allowOutsideClick: false,
+                didOpen: () => { Swal.showLoading(); }
+            });
+
+            try {
+                const res = await fetch(finalEndpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payloadFinal)
+                });
+                const data = await res.json();
+                
+                if (data.success) {
+                    await Swal.fire('¡Éxito!', finalSuccessMsg, 'success');
+                    return true;
+                } else {
+                    Swal.fire('Error', data.message || 'No se pudo enviar', 'error');
+                    return false;
+                }
+            } catch (e) {
+                console.error(e);
+                Swal.fire('Error', 'Problema al procesar la solicitud final', 'error');
+                return false;
+            }
+        }
+
+        async function aceptarSolicitud(id) {
+            const ok = await gestionarBorradorIA(
+                `/api/asesorias/${id}/draft-aceptar`,
+                `/api/asesorias/${id}/aceptar`,
+                {},
+                {},
+                'Correo de Aceptación',
+                'Asesoría aceptada'
+            );
+            if (ok) cargarSolicitudesTutor();
         }
 
         async function rechazarSolicitud(id) {
@@ -862,22 +920,15 @@
             });
 
             if (observacionTutor !== undefined) {
-                try {
-                    const res = await fetch(`/api/asesorias/${id}/rechazar`, { 
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ observacionTutor })
-                    });
-                    const data = await res.json();
-                    if(data.success) {
-                        Swal.fire('Éxito', 'Asesoría rechazada', 'success');
-                        cargarSolicitudesTutor();
-                    } else {
-                        Swal.fire('Error', data.message, 'error');
-                    }
-                } catch(e) {
-                    console.error(e);
-                }
+                const ok = await gestionarBorradorIA(
+                    `/api/asesorias/${id}/draft-rechazar`,
+                    `/api/asesorias/${id}/rechazar`,
+                    { observacionTutor },
+                    { observacionTutor },
+                    'Correo de Rechazo',
+                    'Asesoría rechazada'
+                );
+                if (ok) cargarSolicitudesTutor();
             }
         }
 

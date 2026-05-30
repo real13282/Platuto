@@ -5,6 +5,8 @@ const multer = require('multer');
 const cookieParser = require('cookie-parser');
 const jwt = require('jsonwebtoken');
 const SECRET_KEY = 'clave_secreta_para_jwt_cambiar_en_produccion';
+const { enviarCorreo } = require('./emailService');
+const { redactarCorreoSolicitud, redactarCorreoRespuesta } = require('./aiService');
 
 // ─── Asegurar que existan las carpetas de archivos ───────────────────────────
 const fotoPerfilTDir = path.join(__dirname, 'private', 'fotoPerfilT');
@@ -732,7 +734,7 @@ app.get('/api/tutorias', async (req, res) => {
     }
 });
 
-app.post('/api/tutorias/:id/solicitar', async (req, res) => {
+app.post('/api/tutorias/:id/draft-solicitar', async (req, res) => {
     try {
         const token = req.cookies.token;
         if (!token) return res.status(401).json({ success: false, message: 'No autenticado. Por favor inicie sesión.' });
@@ -746,6 +748,55 @@ app.post('/api/tutorias/:id/solicitar', async (req, res) => {
 
         const { id } = req.params;
         const { temas } = req.body;
+
+        const asesorado = await knex('Asesorados').where({ idalumnos: decoded.id }).first();
+        if (!asesorado) return res.status(403).json({ success: false, message: 'No estás registrado como asesorado.' });
+
+        const tutoriaInfo = await knex('Tutorias')
+            .join('Materias', 'Tutorias.idclases', 'Materias.idclases')
+            .where('Tutorias.idtutoria', id)
+            .select('Materias.materia')
+            .first();
+
+        if (!tutoriaInfo) return res.status(404).json({ success: false, message: 'Tutoría no encontrada' });
+
+        const alumnoSolicitante = await knex('Alumnos')
+            .leftJoin('Licenciaturas', 'Alumnos.idlicenciaturas', 'Licenciaturas.idlicenciaturas')
+            .where({ 'Alumnos.idalumnos': decoded.id })
+            .select('Alumnos.nombre', 'Alumnos.apellidopat', 'Alumnos.semestre', 'Licenciaturas.nombre_carrera')
+            .first();
+
+        const nombreSolicitante = `${alumnoSolicitante.nombre} ${alumnoSolicitante.apellidopat}`;
+
+        const draft = await redactarCorreoSolicitud({
+            licenciatura: alumnoSolicitante.nombre_carrera || 'No especificada',
+            semestre: alumnoSolicitante.semestre || 'No especificado',
+            materia: tutoriaInfo.materia,
+            alumno: nombreSolicitante,
+            observacionAsesorado: temas.trim()
+        });
+
+        res.json({ success: true, draft });
+    } catch (error) {
+        console.error("Error al generar borrador de tutoría:", error);
+        res.status(500).json({ success: false, message: 'Error interno al generar borrador' });
+    }
+});
+
+app.post('/api/tutorias/:id/solicitar', async (req, res) => {
+    try {
+        const token = req.cookies.token;
+        if (!token) return res.status(401).json({ success: false, message: 'No autenticado. Por favor inicie sesión.' });
+        
+        let decoded;
+        try {
+            decoded = jwt.verify(token, SECRET_KEY);
+        } catch (e) {
+            return res.status(401).json({ success: false, message: 'Sesión inválida o expirada.' });
+        }
+
+        const { id } = req.params;
+        const { temas, mensajeAIGenerado } = req.body;
 
         const asesorado = await knex('Asesorados').where({ idalumnos: decoded.id }).first();
         if (!asesorado) {
@@ -764,6 +815,24 @@ app.post('/api/tutorias/:id/solicitar', async (req, res) => {
             observacionAsesorado: temas.trim(),
             status: 0
         });
+
+        // Fetch tutor's email and materia
+        const tutoriaInfo = await knex('Tutorias')
+            .join('Tutores', 'Tutorias.idtutor', 'Tutores.idTutores')
+            .leftJoin('Maestro', 'Tutores.idmaestro', 'Maestro.idmaestro')
+            .leftJoin('Alumnos', 'Tutores.idalumnos', 'Alumnos.idalumnos')
+            .where('Tutorias.idtutoria', id)
+            .select(
+                'Maestro.correo as maestro_correo',
+                'Alumnos.correo as alumno_correo'
+            )
+            .first();
+            
+        const tutorEmail = tutoriaInfo.maestro_correo || tutoriaInfo.alumno_correo;
+
+        if (tutorEmail && mensajeAIGenerado) {
+            enviarCorreo(tutorEmail, 'Nueva solicitud de asesoría', mensajeAIGenerado);
+        }
 
         res.json({ success: true, message: 'Tutoría solicitada exitosamente' });
     } catch (error) {
@@ -866,21 +935,119 @@ app.get('/api/asesorado/solicitudes', async (req, res) => {
     }
 });
 
+// Endpoint para generar borrador de aceptar
+app.post('/api/asesorias/:idAsesoria/draft-aceptar', async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const role = req.user.role;
+        const { idAsesoria } = req.params;
+
+        if (role !== 'tutor') return res.status(403).json({ success: false, message: 'Acceso denegado' });
+
+        let tutorNombre = 'Tutor';
+        if (req.user.isMaestro) {
+            const m = await knex('Maestro').where({ idmaestro: userId }).first();
+            if (m) tutorNombre = `${m.nombre} ${m.apellidopat}`;
+        } else {
+            const a = await knex('Alumnos').where({ idalumnos: userId }).first();
+            if (a) tutorNombre = `${a.nombre} ${a.apellidopat}`;
+        }
+
+        const asesoriaInfo = await knex('asesoria')
+            .join('Tutorias', 'asesoria.idtutoria', 'Tutorias.idtutoria')
+            .join('Materias', 'Tutorias.idclases', 'Materias.idclases')
+            .where('asesoria.idAsesoria', idAsesoria)
+            .select('Materias.materia', 'asesoria.observacionAsesorado')
+            .first();
+
+        if (!asesoriaInfo) return res.status(404).json({ success: false, message: 'Asesoría no encontrada' });
+
+        const draft = await redactarCorreoRespuesta({
+            estado: 'Aceptada',
+            materia: asesoriaInfo.materia,
+            tutor: tutorNombre,
+            observacionTutor: '',
+            observacionAsesorado: asesoriaInfo.observacionAsesorado
+        });
+
+        res.json({ success: true, draft });
+    } catch (error) {
+        console.error("Error al generar borrador de aceptar:", error);
+        res.status(500).json({ success: false, message: 'Error interno' });
+    }
+});
+
 // Endpoint para aceptar asesoría
 app.post('/api/asesorias/:idAsesoria/aceptar', async (req, res) => {
     try {
         const userId = req.user.id;
         const role = req.user.role;
         const { idAsesoria } = req.params;
+        const { mensajeAIGenerado } = req.body;
 
         if (role !== 'tutor') {
             return res.status(403).json({ success: false, message: 'Acceso denegado' });
         }
 
         await knex('asesoria').where({ idAsesoria }).update({ status: 1 });
+
+        const asesoriaInfo = await knex('asesoria')
+            .join('Asesorados', 'asesoria.idasesorados', 'Asesorados.idasesorados')
+            .join('Alumnos', 'Asesorados.idalumnos', 'Alumnos.idalumnos')
+            .where('asesoria.idAsesoria', idAsesoria)
+            .select('Alumnos.correo')
+            .first();
+
+        if (asesoriaInfo && asesoriaInfo.correo && mensajeAIGenerado) {
+            enviarCorreo(asesoriaInfo.correo, 'Asesoría Aceptada', mensajeAIGenerado);
+        }
+
         res.json({ success: true, message: 'Asesoría aceptada' });
     } catch (error) {
         console.error("Error al aceptar asesoría:", error);
+        res.status(500).json({ success: false, message: 'Error interno' });
+    }
+});
+
+// Endpoint para generar borrador de rechazar
+app.post('/api/asesorias/:idAsesoria/draft-rechazar', async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const role = req.user.role;
+        const { idAsesoria } = req.params;
+        const { observacionTutor } = req.body;
+
+        if (role !== 'tutor') return res.status(403).json({ success: false, message: 'Acceso denegado' });
+
+        let tutorNombre = 'Tutor';
+        if (req.user.isMaestro) {
+            const m = await knex('Maestro').where({ idmaestro: userId }).first();
+            if (m) tutorNombre = `${m.nombre} ${m.apellidopat}`;
+        } else {
+            const a = await knex('Alumnos').where({ idalumnos: userId }).first();
+            if (a) tutorNombre = `${a.nombre} ${a.apellidopat}`;
+        }
+
+        const asesoriaInfo = await knex('asesoria')
+            .join('Tutorias', 'asesoria.idtutoria', 'Tutorias.idtutoria')
+            .join('Materias', 'Tutorias.idclases', 'Materias.idclases')
+            .where('asesoria.idAsesoria', idAsesoria)
+            .select('Materias.materia', 'asesoria.observacionAsesorado')
+            .first();
+
+        if (!asesoriaInfo) return res.status(404).json({ success: false, message: 'Asesoría no encontrada' });
+
+        const draft = await redactarCorreoRespuesta({
+            estado: 'Rechazada',
+            materia: asesoriaInfo.materia,
+            tutor: tutorNombre,
+            observacionTutor: observacionTutor || 'Ninguna',
+            observacionAsesorado: asesoriaInfo.observacionAsesorado
+        });
+
+        res.json({ success: true, draft });
+    } catch (error) {
+        console.error("Error al generar borrador de rechazar:", error);
         res.status(500).json({ success: false, message: 'Error interno' });
     }
 });
@@ -891,13 +1058,25 @@ app.post('/api/asesorias/:idAsesoria/rechazar', async (req, res) => {
         const userId = req.user.id;
         const role = req.user.role;
         const { idAsesoria } = req.params;
-        const { observacionTutor } = req.body;
+        const { observacionTutor, mensajeAIGenerado } = req.body;
 
         if (role !== 'tutor') {
             return res.status(403).json({ success: false, message: 'Acceso denegado' });
         }
 
         await knex('asesoria').where({ idAsesoria }).update({ status: 2, observacionTutor: observacionTutor || '' });
+
+        const asesoriaInfo = await knex('asesoria')
+            .join('Asesorados', 'asesoria.idasesorados', 'Asesorados.idasesorados')
+            .join('Alumnos', 'Asesorados.idalumnos', 'Alumnos.idalumnos')
+            .where('asesoria.idAsesoria', idAsesoria)
+            .select('Alumnos.correo')
+            .first();
+
+        if (asesoriaInfo && asesoriaInfo.correo && mensajeAIGenerado) {
+            enviarCorreo(asesoriaInfo.correo, 'Asesoría Rechazada', mensajeAIGenerado);
+        }
+
         res.json({ success: true, message: 'Asesoría rechazada' });
     } catch (error) {
         console.error("Error al rechazar asesoría:", error);

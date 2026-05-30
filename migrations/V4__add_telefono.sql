@@ -1,2 +1,0 @@
-ALTER TABLE Asesorados ADD COLUMN telefono TEXT;
-ALTER TABLE Tutores ADD COLUMN telefono TEXT;

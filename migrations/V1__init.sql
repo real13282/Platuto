@@ -86,3 +86,22 @@ CREATE TABLE IF NOT EXISTS Maestro (
     correo TEXT,
     sexo TEXT
 );
+CREATE TABLE IF NOT EXISTS Tutorias (
+    idtutoria INTEGER PRIMARY KEY AUTOINCREMENT,
+    idtutor INTEGER NOT NULL,
+    idclases INTEGER NOT NULL,
+    fecha_hora DATETIME,
+    FOREIGN KEY (idtutor) REFERENCES Tutores(idTutores),
+    FOREIGN KEY (idclases) REFERENCES Materias(idclases)
+);
+
+CREATE TABLE IF NOT EXISTS asesoria (
+    idAsesoria INTEGER PRIMARY KEY AUTOINCREMENT,
+    idtutoria INTEGER NOT NULL,
+    idasesorados INTEGER NOT NULL,
+    observacionAsesorado TEXT,
+    observacionTutor TEXT,
+    status INTEGER DEFAULT 0,
+    FOREIGN KEY (idtutoria) REFERENCES Tutorias(idtutoria),
+    FOREIGN KEY (idasesorados) REFERENCES Asesorados(idasesorados)
+);

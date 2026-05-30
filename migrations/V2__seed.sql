@@ -674,7 +674,7 @@ INSERT INTO Materias (materia, idlicenciaturas, semestre, grupo, turno, clave) V
 -- Insertando Alumnos (30 alumnos como muestra robusta)
 INSERT INTO Alumnos (apellidopat, apellidomat, nombre, calle, colonia, telefono, correo, tutorapellidopat, tutorapellidomat, tutornombre, tutortelefono, tutortelefonoa, tutorcorreo, semestre, nocontrol, clave, idlicenciaturas, sexo, tipo, curp) VALUES
 ('Perez', 'Garcia', 'Juan', 'Av. Siempre Viva 123', 'Centro', '5551234567', 'oaxaljuanpe@lameso.edu.mx', 'Perez', 'Lopez', 'Carlos', '5559876543', '5550001111', 'carlos.perez@email.com', 1, '12345678', '123456', 1, 'M', 'Regular', 'PEGJ050101HDFR01'),
-('Lopez', 'Hernandez', 'Maria', 'Calle Luna 45', 'San Rafael', '5552345678', 'oaxalmarialo@lameso.edu.mx', 'Lopez', 'Martinez', 'Jose', '5558765432', '5551112222', 'jose.lopez@email.com', 2, '23100028', '123456', 1, 'F', 'Regular', 'LOHM040202MDFR02'),
+('Fabian', 'García', 'Flor Mariana', 'Calle Luna 45', 'San Rafael', '5552345678', 'oaxalflorfab@lameso.edu.mx', 'Lopez', 'Martinez', 'Jose', '5558765432', '5551112222', 'jose.lopez@email.com', 2, '23100028', '123456', 1, 'F', 'Regular', 'LOHM040202MDFR02'),
 ('Gomez', 'Martinez', 'Pedro', 'Blvd Sol 67', 'Juarez', '5553456789', 'oaxalpedrogo@lameso.edu.mx', 'Gomez', 'Perez', 'Luis', '5557654321', '5552223333', 'luis.gomez@email.com', 3, '2310003', '123456', 2, 'M', 'Regular', 'GOMP030303HDFR03'),
 ('Hernandez', 'Gonzalez', 'Ana', 'Av. Estrellas 89', 'Roma', '5554567890', 'oaxalanahe@lameso.edu.mx', 'Hernandez', 'Garcia', 'Miguel', '5556543210', '5553334444', 'miguel.hernandez@email.com', 4, '231000400', '123456', 3, 'F', 'Irregular', 'HEGA020404MDFR04'),
 ('Martinez', 'Lopez', 'Luis', 'Calle Nubes 12', 'Condesa', '5555678901', 'oaxalluisma@lameso.edu.mx', 'Martinez', 'Hernandez', 'Roberto', '5555432109', '5554445555', 'roberto.martinez@email.com', 5, '2310005', '123456', 4, 'M', 'Regular', 'MALL010505HDFR05'),
@@ -704,3 +704,8 @@ INSERT INTO Alumnos (apellidopat, apellidomat, nombre, calle, colonia, telefono,
 ('Flores', 'Rodriguez', 'Gabriel', 'Av. Rio 45', 'Coyoacan', '5559012347', 'oaxalgabrielfl@lameso.edu.mx', 'Flores', 'Sanchez', 'Julio', '5551098767', '5558889991', 'julio.flores@email.com', 2, '2310029', '123456', 8, 'M', 'Regular', 'FLRG770505HDFR29'),
 ('Gomez', 'Sanchez', 'Samantha', 'Calle Mar 67', 'Tlalpan', '5550123458', 'oaxalsamanthago@lameso.edu.mx', 'Gomez', 'Ramirez', 'Sergio', '5550987656', '5559990002', 'sergio.gomez@email.com', 3, '2310030', '123456', 9, 'F', 'Regular', 'GOSS760606MDFR30');
 
+INSERT INTO Asesorados (idasesorados, idalumnos, materias,url_foto_perfil, telefono) VALUES
+(1,1,"ADMIILI", "fotoPerfilA/pf12345678.png", "5551234567");
+
+INSERT INTO Tutores (idTutores, idmaestro, url_cv, url_foto_perfil, materias, telefono) VALUES
+(1,1,"cv/cv99999999.pdf","fotoPerfilT/pf99999999.png", "INTRECONLI","5551234567");
